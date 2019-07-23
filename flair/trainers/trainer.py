@@ -1,16 +1,12 @@
 import datetime
 import logging
+import time
 from pathlib import Path
 from typing import Union
 
-import torch
-from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torch.optim.sgd import SGD
-from torch.utils.data.dataset import ConcatDataset
-from torch.utils.tensorboard import SummaryWriter
-
 import flair
 import flair.nn
+import torch
 from flair.data import MultiCorpus, Corpus
 from flair.datasets import DataLoader
 from flair.optim import ExpAnnealLR
@@ -23,6 +19,10 @@ from flair.training_utils import (
     store_embeddings,
 
 )
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.sgd import SGD
+from torch.utils.data.dataset import ConcatDataset
+from torch.utils.tensorboard import SummaryWriter
 
 log = logging.getLogger("flair")
 
@@ -97,6 +97,8 @@ class ModelTrainer:
         :param kwargs: Other arguments for the Optimizer
         :return:
         """
+
+        start_time = time.time()
 
         # tensorboard
         writer = SummaryWriter(summary_dir)
@@ -267,6 +269,9 @@ class ModelTrainer:
                 # evaluate on train / dev / test split depending on training settings
                 result_line: str = ""
 
+                train_loss_ = dev_loss_ = test_loss_ = None
+                train_score_ = dev_score_ = test_score_ = None
+
                 if log_train:
                     train_eval_result, train_loss = self.model.evaluate(
                         DataLoader(
@@ -277,15 +282,11 @@ class ModelTrainer:
                     )
                     result_line += f"\t{train_eval_result.log_line}"
 
+                    train_loss_, train_score_ = train_loss, \
+                                                train_eval_result.main_score
+
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.train, embedding_storage_mode)
-
-                    writer.add_scalars(
-                        'data/losses', {'Train loss': train_loss}, epoch + 1)
-                    writer.add_scalars(
-                        'data/scores',
-                        {'Train score': train_eval_result.main_score},
-                        epoch + 1)
 
                 if log_dev:
                     dev_eval_result, dev_loss = self.model.evaluate(
@@ -306,15 +307,10 @@ class ModelTrainer:
 
                     current_score = dev_eval_result.main_score
 
+                    dev_loss_, dev_score_ = dev_loss, dev_eval_result.main_score
+
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.dev, embedding_storage_mode)
-
-                    writer.add_scalars(
-                        'data/losses', {'Dev loss': dev_loss}, epoch + 1)
-                    writer.add_scalars(
-                        'data/scores',
-                        {'Dev score': dev_eval_result.main_score},
-                        epoch + 1)
 
                 if log_test:
                     test_eval_result, test_loss = self.model.evaluate(
@@ -329,16 +325,27 @@ class ModelTrainer:
                     log.info(
                         f"TEST : loss {test_loss} - score {test_eval_result.main_score}"
                     )
+                    test_loss_, test_score_ = test_loss, test_eval_result.main_score
 
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.test, embedding_storage_mode)
 
-                    writer.add_scalars(
-                        'data/losses', {'Test loss': test_loss}, epoch + 1)
-                    writer.add_scalars(
-                        'data/scores',
-                        {'Test score': test_eval_result.main_score},
-                        epoch + 1)
+                writer.add_scalars(
+                    'data/losses', {
+                        'Train loss': train_loss_,
+                        'Dev loss': dev_loss_,
+                        'Test loss': test_loss_
+                    }, epoch + 1)
+
+                writer.add_scalars(
+                    'data/scores', {
+                        'Train score': train_score_,
+                        'Dev score': dev_score_,
+                        'Test score': test_score_
+                    }, epoch + 1)
+                writer.add_scalar(
+                    'data/learning_rate', learning_rate, epoch + 1
+                )
 
                 # determine learning rate annealing through scheduler
                 scheduler.step(current_score)
@@ -433,6 +440,10 @@ class ModelTrainer:
         else:
             final_score = 0
             log.info("Test data not provided setting final score to 0")
+
+        log.info('Total training time is %.2fh',
+                 (time.time() - start_time) / 3600)
+        log_line(log)
 
         log.removeHandler(log_handler)
 
