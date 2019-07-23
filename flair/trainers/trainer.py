@@ -7,6 +7,7 @@ import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.optim.sgd import SGD
 from torch.utils.data.dataset import ConcatDataset
+from torch.utils.tensorboard import SummaryWriter
 
 import flair
 import flair.nn
@@ -20,6 +21,7 @@ from flair.training_utils import (
     add_file_handler,
     Result,
     store_embeddings,
+
 )
 
 log = logging.getLogger("flair")
@@ -65,6 +67,7 @@ class ModelTrainer:
         param_selection_mode: bool = False,
         num_workers: int = 6,
         sampler=None,
+        summary_dir: str = None,
         **kwargs,
     ) -> dict:
         """
@@ -94,6 +97,9 @@ class ModelTrainer:
         :param kwargs: Other arguments for the Optimizer
         :return:
         """
+
+        # tensorboard
+        writer = SummaryWriter(summary_dir)
 
         if eval_mini_batch_size is None:
             eval_mini_batch_size = mini_batch_size
@@ -176,7 +182,6 @@ class ModelTrainer:
         # At any point you can hit Ctrl + C to break out of training early.
         try:
             previous_learning_rate = learning_rate
-
 
             for epoch in range(0 + self.epoch, max_epochs + self.epoch):
                 log_line(log)
@@ -275,6 +280,13 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.train, embedding_storage_mode)
 
+                    writer.add_scalar(
+                        'data/losses', {'Train loss': train_loss}, epoch + 1)
+                    writer.add_scalar(
+                        'data/scores',
+                        {'Train score': train_eval_result.main_score},
+                        epoch + 1)
+
                 if log_dev:
                     dev_eval_result, dev_loss = self.model.evaluate(
                         DataLoader(
@@ -297,6 +309,13 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.dev, embedding_storage_mode)
 
+                    writer.add_scalar(
+                        'data/losses', {'Dev loss': dev_loss}, epoch + 1)
+                    writer.add_scalar(
+                        'data/scores',
+                        {'Dev score': dev_eval_result.main_score},
+                        epoch + 1)
+
                 if log_test:
                     test_eval_result, test_loss = self.model.evaluate(
                         DataLoader(
@@ -313,6 +332,13 @@ class ModelTrainer:
 
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.test, embedding_storage_mode)
+
+                    writer.add_scalar(
+                        'data/losses', {'Test loss': test_loss}, epoch + 1)
+                    writer.add_scalar(
+                        'data/scores',
+                        {'Test score': test_eval_result.main_score},
+                        epoch + 1)
 
                 # determine learning rate annealing through scheduler
                 scheduler.step(current_score)
@@ -437,13 +463,12 @@ class ModelTrainer:
                 batch_size=eval_mini_batch_size,
                 num_workers=num_workers,
             ),
-            out_path=base_path/"dev.tsv",
+            out_path=base_path / "dev.tsv",
         )
-        dev_results:Result=dev_results
+        dev_results: Result = dev_results
         log.info(dev_results.log_line)
         log.info(dev_results.detailed_results)
         log_line(log)
-
 
         log.info('Test result on best dev epoch:')
         test_results, test_loss = self.model.evaluate(
@@ -550,7 +575,7 @@ class ModelTrainer:
                         + (1 - smoothing_factor) * loss_item
                     )
                     loss_item = moving_avg_loss / (
-                            1 - smoothing_factor ** (itr + 1))
+                        1 - smoothing_factor ** (itr + 1))
                 if loss_item < best_loss:
                     best_loss = loss
 
