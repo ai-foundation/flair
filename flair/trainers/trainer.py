@@ -1,8 +1,7 @@
+import datetime
 import logging
 from pathlib import Path
-from typing import List, Union
-
-import datetime
+from typing import Union
 
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -172,10 +171,12 @@ class ModelTrainer:
         dev_score_history = []
         dev_loss_history = []
         train_loss_history = []
+        best_epoch = self.epoch
 
         # At any point you can hit Ctrl + C to break out of training early.
         try:
             previous_learning_rate = learning_rate
+
 
             for epoch in range(0 + self.epoch, max_epochs + self.epoch):
                 log_line(log)
@@ -350,7 +351,8 @@ class ModelTrainer:
                         if log_dev:
                             f.write(
                                 "\tDEV_LOSS\tDEV_"
-                                + "\tDEV_".join(dev_eval_result.log_header.split("\t"))
+                                + "\tDEV_".join(
+                                    dev_eval_result.log_header.split("\t"))
                             )
                         if log_test:
                             f.write(
@@ -381,6 +383,7 @@ class ModelTrainer:
                     and not param_selection_mode
                     and current_score == scheduler.best
                 ):
+                    best_epoch = epoch
                     self.model.save(base_path / "best-model.pt")
 
             # if we do not use dev data for model selection, save final model
@@ -395,9 +398,12 @@ class ModelTrainer:
                 self.model.save(base_path / "final-model.pt")
                 log.info("Done.")
 
+        log.info('Best dev epoch is %d' % best_epoch)
+
         # test best model if test data is present
         if self.corpus.test:
-            final_score = self.final_test(base_path, eval_mini_batch_size, num_workers)
+            final_score = self.final_test(base_path, eval_mini_batch_size,
+                                          num_workers)
         else:
             final_score = 0
             log.info("Test data not provided setting final score to 0")
@@ -423,6 +429,23 @@ class ModelTrainer:
         if (base_path / "best-model.pt").exists():
             self.model = self.model.load(base_path / "best-model.pt")
 
+        # Final best dev results
+        log.info('Best dev results:')
+        dev_results, dev_loss = self.model.evaluate(
+            DataLoader(
+                self.corpus.dev,
+                batch_size=eval_mini_batch_size,
+                num_workers=num_workers,
+            ),
+            out_path=base_path/"dev.tsv",
+        )
+        dev_results:Result=dev_results
+        log.info(dev_results.log_line)
+        log.info(dev_results.detailed_results)
+        log_line(log)
+
+
+        log.info('Test result on best dev epoch:')
         test_results, test_loss = self.model.evaluate(
             DataLoader(
                 self.corpus.test,
@@ -498,7 +521,8 @@ class ModelTrainer:
 
         train_data = self.corpus.train
 
-        batch_loader = DataLoader(train_data, batch_size=mini_batch_size, shuffle=True)
+        batch_loader = DataLoader(train_data, batch_size=mini_batch_size,
+                                  shuffle=True)
 
         scheduler = ExpAnnealLR(optimizer, end_learning_rate, iterations)
 
@@ -525,7 +549,8 @@ class ModelTrainer:
                         smoothing_factor * moving_avg_loss
                         + (1 - smoothing_factor) * loss_item
                     )
-                    loss_item = moving_avg_loss / (1 - smoothing_factor ** (itr + 1))
+                    loss_item = moving_avg_loss / (
+                            1 - smoothing_factor ** (itr + 1))
                 if loss_item < best_loss:
                     best_loss = loss
 
