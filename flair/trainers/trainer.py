@@ -280,9 +280,9 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.train, embedding_storage_mode)
 
-                    writer.add_scalar(
+                    writer.add_scalars(
                         'data/losses', {'Train loss': train_loss}, epoch + 1)
-                    writer.add_scalar(
+                    writer.add_scalars(
                         'data/scores',
                         {'Train score': train_eval_result.main_score},
                         epoch + 1)
@@ -309,9 +309,9 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.dev, embedding_storage_mode)
 
-                    writer.add_scalar(
+                    writer.add_scalars(
                         'data/losses', {'Dev loss': dev_loss}, epoch + 1)
-                    writer.add_scalar(
+                    writer.add_scalars(
                         'data/scores',
                         {'Dev score': dev_eval_result.main_score},
                         epoch + 1)
@@ -333,9 +333,9 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.test, embedding_storage_mode)
 
-                    writer.add_scalar(
+                    writer.add_scalars(
                         'data/losses', {'Test loss': test_loss}, epoch + 1)
-                    writer.add_scalar(
+                    writer.add_scalars(
                         'data/scores',
                         {'Test score': test_eval_result.main_score},
                         epoch + 1)
@@ -435,6 +435,8 @@ class ModelTrainer:
             log.info("Test data not provided setting final score to 0")
 
         log.removeHandler(log_handler)
+
+        writer.close()
 
         return {
             "test_score": final_score,
