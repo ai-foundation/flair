@@ -107,6 +107,47 @@ def train(config, trainer):
     )
 
 
+# TODO add find learning rate
+
+
+def tune_hyperparameter(corpus):
+    # tune hyperparameters, hard-code for now
+    from hyperopt import hp
+    from flair.hyperparameter.param_selection import SearchSpace, Parameter
+
+    search_space = SearchSpace()
+    search_space.add(Parameter.EMBEDDINGS, hp.choice, options=[
+        [WordEmbeddings('glove')],
+        [WordEmbeddings('glove'), CharacterEmbeddings()],
+        [BertEmbeddings('bert-base-cased')],
+        [BertEmbeddings('bert-base-uncased')],
+        [FlairEmbeddings('news-forward'), FlairEmbeddings('news-backward')]
+    ])
+    search_space.add(Parameter.HIDDEN_SIZE, hp.choice, options=[64, 128,
+                                                                256]),
+    search_space.add(Parameter.RNN_LAYERS, hp.choice(options=[1, 2])),
+    search_space.add(Parameter.DROPOUT, hp.uniform, low=0.0, high=0.5),
+    search_space.add(Parameter.LEARNING_RATE, hp.choice,
+                     options=[0.05, 0.1, 0.15, 0.2]),
+    search_space.add(Parameter.MINI_BATCH_SIZE, hp.choice,
+                     options=[16, 32, 64, 128, 256])
+
+    from flair.hyperparameter.param_selection import \
+        SequenceTaggerParamSelector, OptimizationValue
+
+    param_selector = SequenceTaggerParamSelector(
+        corpus,
+        'ner',
+        'resources/results',
+        max_epochs=50,
+        training_runs=3,
+        optimization_value=OptimizationValue.DEV_SCORE
+
+    )
+
+    param_selector.optimization_value(search_space)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Tuning with Flair')
     parser.add_argument('--config', help='Configuration File',
@@ -118,13 +159,19 @@ if __name__ == '__main__':
     config.set('trainer', 'dir',
                'trainer_' + str(datetime.datetime.now()).replace(' ', '_'))
     corpus = get_corpus(config)
-    embeddings = get_embeddings(config)
-    tagger = get_tagger(config, corpus, embeddings)
-    trainer = get_trainer(config, corpus, tagger)
 
-    # write all configs to trainer dir
-    os.mkdir(config['trainer']['dir'])
-    with open(os.path.join(config['trainer']['dir'], 'config.ini'), 'w') as f:
-        config.write(f)
+    # hyperopt hyperparameter tuning
+    if config['trainer']['hyperopt']:
+        tune_hyperparameter(corpus)
+    else:
 
-    train(config, trainer)
+        # write all configs to trainer dir
+        os.mkdir(config['trainer']['dir'])
+        with open(os.path.join(config['trainer']['dir'], 'config.ini'),
+                  'w') as f:
+            config.write(f)
+
+        embeddings = get_embeddings(config)
+        tagger = get_tagger(config, corpus, embeddings)
+        trainer = get_trainer(config, corpus, tagger)
+        train(config, trainer)

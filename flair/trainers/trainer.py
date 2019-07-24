@@ -566,6 +566,7 @@ class ModelTrainer:
 
         model_state = self.model.state_dict()
         model_device = next(self.model.parameters()).device
+
         self.model.train()
 
         for itr, batch in enumerate(batch_loader):
