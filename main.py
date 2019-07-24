@@ -144,7 +144,7 @@ def tune_hyperparameter(corpus):
         optimization_value=OptimizationValue.DEV_SCORE
     )
 
-    param_selector.optimization_value(search_space)
+    param_selector.optimize(search_space)
 
 
 if __name__ == '__main__':
