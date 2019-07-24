@@ -101,7 +101,8 @@ class ModelTrainer:
         start_time = time.time()
 
         # tensorboard
-        writer = SummaryWriter(summary_dir)
+        if summary_dir:
+            writer = SummaryWriter(summary_dir)
 
         if eval_mini_batch_size is None:
             eval_mini_batch_size = mini_batch_size
@@ -330,22 +331,23 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.test, embedding_storage_mode)
 
-                writer.add_scalars(
-                    'data/losses', {
-                        'Train loss': train_loss_,
-                        'Dev loss': dev_loss_,
-                        'Test loss': test_loss_
-                    }, epoch + 1)
+                if summary_dir:
+                    writer.add_scalars(
+                        'data/losses', {
+                            'Train loss': train_loss_,
+                            'Dev loss': dev_loss_,
+                            'Test loss': test_loss_
+                        }, epoch + 1)
 
-                writer.add_scalars(
-                    'data/scores', {
-                        'Train score': train_score_,
-                        'Dev score': dev_score_,
-                        'Test score': test_score_
-                    }, epoch + 1)
-                writer.add_scalar(
-                    'data/learning_rate', learning_rate, epoch + 1
-                )
+                    writer.add_scalars(
+                        'data/scores', {
+                            'Train score': train_score_,
+                            'Dev score': dev_score_,
+                            'Test score': test_score_
+                        }, epoch + 1)
+                    writer.add_scalar(
+                        'data/learning_rate', learning_rate, epoch + 1
+                    )
 
                 # determine learning rate annealing through scheduler
                 scheduler.step(current_score)
@@ -447,7 +449,8 @@ class ModelTrainer:
 
         log.removeHandler(log_handler)
 
-        writer.close()
+        if summary_dir:
+            writer.close()
 
         return {
             "test_score": final_score,
