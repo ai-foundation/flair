@@ -118,10 +118,10 @@ def tune_hyperparameter(corpus):
     search_space = SearchSpace()
     search_space.add(Parameter.EMBEDDINGS, hp.choice, options=[
         [WordEmbeddings('glove')],
-        [WordEmbeddings('glove'), CharacterEmbeddings()],
+        StackedEmbeddings([WordEmbeddings('glove'), CharacterEmbeddings()]),
         [BertEmbeddings('bert-base-cased')],
         [BertEmbeddings('bert-base-uncased')],
-        [FlairEmbeddings('news-forward'), FlairEmbeddings('news-backward')]
+        StackedEmbeddings([FlairEmbeddings('news-forward'), FlairEmbeddings('news-backward')])
     ])
     search_space.add(Parameter.HIDDEN_SIZE, hp.choice, options=[64, 128,
                                                                 256]),
