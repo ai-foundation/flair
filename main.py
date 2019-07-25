@@ -38,7 +38,7 @@ def get_tagger(config, corpus, embeddings):
         tag_dictionary=tag_dictionary,
         tag_type=tag_type,
         use_crf=config['tagger']['use_crf'],
-        dropout=config['tagger']['dropout']
+        dropout=float(config['tagger']['dropout'])
     )
     return tagger
 
