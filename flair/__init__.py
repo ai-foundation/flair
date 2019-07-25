@@ -1,13 +1,19 @@
 import torch
 import os
 
+from .available import get_free_gpus
+
+def get_avail_device() -> torch.device:
+    gpu_id = get_free_gpus()[0] # select the first gpu
+    return torch.device(f"cuda:{gpu_id}")
+
 # global variable: cache_root
 cache_root = os.path.expanduser(os.path.join("~", ".flair"))
 
 # global variable: device
 device = None
 if torch.cuda.is_available():
-    device = torch.device("cuda:0")
+    device = get_avail_device()
 else:
     device = torch.device("cpu")
 
