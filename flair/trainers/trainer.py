@@ -1,16 +1,12 @@
-import logging
-from pathlib import Path
-from typing import List, Union
-
 import datetime
-
-import torch
-from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torch.optim.sgd import SGD
-from torch.utils.data.dataset import ConcatDataset
+import logging
+import time
+from pathlib import Path
+from typing import Union
 
 import flair
 import flair.nn
+import torch
 from flair.data import MultiCorpus, Corpus
 from flair.datasets import DataLoader
 from flair.optim import ExpAnnealLR
@@ -21,7 +17,12 @@ from flair.training_utils import (
     add_file_handler,
     Result,
     store_embeddings,
+
 )
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.sgd import SGD
+from torch.utils.data.dataset import ConcatDataset
+from torch.utils.tensorboard import SummaryWriter
 
 log = logging.getLogger("flair")
 
@@ -66,6 +67,7 @@ class ModelTrainer:
         param_selection_mode: bool = False,
         num_workers: int = 6,
         sampler=None,
+        summary_dir: str = None,
         **kwargs,
     ) -> dict:
         """
@@ -95,6 +97,12 @@ class ModelTrainer:
         :param kwargs: Other arguments for the Optimizer
         :return:
         """
+
+        start_time = time.time()
+
+        # tensorboard
+        if summary_dir:
+            writer = SummaryWriter(summary_dir)
 
         if eval_mini_batch_size is None:
             eval_mini_batch_size = mini_batch_size
@@ -172,6 +180,7 @@ class ModelTrainer:
         dev_score_history = []
         dev_loss_history = []
         train_loss_history = []
+        best_epoch = self.epoch
 
         # At any point you can hit Ctrl + C to break out of training early.
         try:
@@ -261,6 +270,9 @@ class ModelTrainer:
                 # evaluate on train / dev / test split depending on training settings
                 result_line: str = ""
 
+                train_loss_ = dev_loss_ = test_loss_ = None
+                train_score_ = dev_score_ = test_score_ = None
+
                 if log_train:
                     train_eval_result, train_loss = self.model.evaluate(
                         DataLoader(
@@ -270,6 +282,9 @@ class ModelTrainer:
                         )
                     )
                     result_line += f"\t{train_eval_result.log_line}"
+
+                    train_loss_, train_score_ = train_loss, \
+                                                train_eval_result.main_score
 
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.train, embedding_storage_mode)
@@ -293,6 +308,8 @@ class ModelTrainer:
 
                     current_score = dev_eval_result.main_score
 
+                    dev_loss_, dev_score_ = dev_loss, dev_eval_result.main_score
+
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.dev, embedding_storage_mode)
 
@@ -309,9 +326,29 @@ class ModelTrainer:
                     log.info(
                         f"TEST : loss {test_loss} - score {test_eval_result.main_score}"
                     )
+                    test_loss_, test_score_ = test_loss, test_eval_result.main_score
 
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.test, embedding_storage_mode)
+
+                # TODO add graph
+                if summary_dir:
+                    writer.add_scalars(
+                        'data/losses', {
+                            'Train loss': train_loss_,
+                            'Dev loss': dev_loss_,
+                            'Test loss': test_loss_
+                        }, epoch + 1)
+
+                    writer.add_scalars(
+                        'data/scores', {
+                            'Train score': train_score_,
+                            'Dev score': dev_score_,
+                            'Test score': test_score_
+                        }, epoch + 1)
+                    writer.add_scalar(
+                        'data/learning_rate', learning_rate, epoch + 1
+                    )
 
                 # determine learning rate annealing through scheduler
                 scheduler.step(current_score)
@@ -350,7 +387,8 @@ class ModelTrainer:
                         if log_dev:
                             f.write(
                                 "\tDEV_LOSS\tDEV_"
-                                + "\tDEV_".join(dev_eval_result.log_header.split("\t"))
+                                + "\tDEV_".join(
+                                    dev_eval_result.log_header.split("\t"))
                             )
                         if log_test:
                             f.write(
@@ -381,6 +419,7 @@ class ModelTrainer:
                     and not param_selection_mode
                     and current_score == scheduler.best
                 ):
+                    best_epoch = epoch
                     self.model.save(base_path / "best-model.pt")
 
             # if we do not use dev data for model selection, save final model
@@ -395,14 +434,24 @@ class ModelTrainer:
                 self.model.save(base_path / "final-model.pt")
                 log.info("Done.")
 
+        log.info('Best dev epoch is %d' % best_epoch)
+
         # test best model if test data is present
         if self.corpus.test:
-            final_score = self.final_test(base_path, eval_mini_batch_size, num_workers)
+            final_score = self.final_test(base_path, eval_mini_batch_size,
+                                          num_workers)
         else:
             final_score = 0
             log.info("Test data not provided setting final score to 0")
 
+        log.info('Total training time is %.2fh',
+                 (time.time() - start_time) / 3600)
+        log_line(log)
+
         log.removeHandler(log_handler)
+
+        if summary_dir:
+            writer.close()
 
         return {
             "test_score": final_score,
@@ -423,6 +472,22 @@ class ModelTrainer:
         if (base_path / "best-model.pt").exists():
             self.model = self.model.load(base_path / "best-model.pt")
 
+        # Final best dev results
+        log.info('Best dev results:')
+        dev_results, dev_loss = self.model.evaluate(
+            DataLoader(
+                self.corpus.dev,
+                batch_size=eval_mini_batch_size,
+                num_workers=num_workers,
+            ),
+            out_path=base_path / "dev.tsv",
+        )
+        dev_results: Result = dev_results
+        log.info(dev_results.log_line)
+        log.info(dev_results.detailed_results)
+        log_line(log)
+
+        log.info('Test result on best dev epoch:')
         test_results, test_loss = self.model.evaluate(
             DataLoader(
                 self.corpus.test,
@@ -498,12 +563,14 @@ class ModelTrainer:
 
         train_data = self.corpus.train
 
-        batch_loader = DataLoader(train_data, batch_size=mini_batch_size, shuffle=True)
+        batch_loader = DataLoader(train_data, batch_size=mini_batch_size,
+                                  shuffle=True)
 
         scheduler = ExpAnnealLR(optimizer, end_learning_rate, iterations)
 
         model_state = self.model.state_dict()
         model_device = next(self.model.parameters()).device
+
         self.model.train()
 
         for itr, batch in enumerate(batch_loader):
@@ -525,7 +592,8 @@ class ModelTrainer:
                         smoothing_factor * moving_avg_loss
                         + (1 - smoothing_factor) * loss_item
                     )
-                    loss_item = moving_avg_loss / (1 - smoothing_factor ** (itr + 1))
+                    loss_item = moving_avg_loss / (
+                        1 - smoothing_factor ** (itr + 1))
                 if loss_item < best_loss:
                     best_loss = loss
 
