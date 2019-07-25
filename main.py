@@ -37,7 +37,8 @@ def get_tagger(config, corpus, embeddings):
         embeddings=embeddings,
         tag_dictionary=tag_dictionary,
         tag_type=tag_type,
-        use_crf=config['tagger']['use_crf']
+        use_crf=config['tagger']['use_crf'],
+        dropout=config['tagger']['dropout']
     )
     return tagger
 
@@ -121,16 +122,30 @@ def tune_hyperparameter(corpus):
         # StackedEmbeddings([WordEmbeddings('glove'), CharacterEmbeddings()]),
         # StackedEmbeddings([BertEmbeddings('bert-base-cased')]),
         # StackedEmbeddings([BertEmbeddings('bert-base-uncased')]),
-        StackedEmbeddings([FlairEmbeddings('news-forward'), FlairEmbeddings('news-backward')])
+        StackedEmbeddings(
+            [FlairEmbeddings('news-forward'), FlairEmbeddings('news-backward')])
     ])
     search_space.add(Parameter.HIDDEN_SIZE, hp.choice, options=[128, 256]),
     # search_space.add(Parameter.RNN_LAYERS, hp.choice, options=[1, 2]),
     # search_space.add(Parameter.DROPOUT, hp.uniform, low=0.0, high=0.5),
-    search_space.add(Parameter.DROPOUT, hp.choice, options=[0.25, 0.5]), 
+    search_space.add(Parameter.DROPOUT, p.choice, options=[0.25, 0.5]),
     search_space.add(Parameter.LEARNING_RATE, hp.choice,
                      options=[0.05, 0.1, 0.15, 0.2]),
     search_space.add(Parameter.MINI_BATCH_SIZE, hp.choice,
                      options=[8, 16])
+
+    """
+    2019-07-24 23:47:51,591 Optimizing parameter configuration done.
+2019-07-24 23:47:51,591 Best parameter configuration found:
+2019-07-24 23:47:51,591         dropout: 0
+2019-07-24 23:47:51,592         embeddings: 0
+2019-07-24 23:47:51,592         hidden_size: 1
+2019-07-24 23:47:51,592         learning_rate: 2
+2019-07-24 23:47:51,592         mini_batch_size: 0
+
+    """
+
+
 
     from flair.hyperparameter.param_selection import \
         SequenceTaggerParamSelector, OptimizationValue
