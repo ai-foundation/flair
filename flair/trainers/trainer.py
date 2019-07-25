@@ -331,6 +331,7 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.test, embedding_storage_mode)
 
+                # TODO add graph
                 if summary_dir:
                     writer.add_scalars(
                         'data/losses', {

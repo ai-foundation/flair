@@ -6,6 +6,7 @@ import argparse
 import configparser
 import datetime
 import os
+from pathlib import Path
 from typing import List
 
 from flair.data import Corpus
@@ -75,7 +76,7 @@ def get_embeddings(config):
         embedding_types.append(ELMoEmbeddings(config['embeddings']['elmo']))
     if config['embeddings']['flair']:
         for i in config['embeddings']['flair'].strip().split():
-            embedding_types.append(FlairEmbeddings(i))
+            embedding_types.append(FlairEmbeddings(i, use_cache=True))
 
     embeddings: StackedEmbeddings = StackedEmbeddings(
         embeddings=embedding_types)
@@ -108,9 +109,6 @@ def train(config, trainer):
     )
 
 
-# TODO add find learning rate
-
-
 def tune_hyperparameter(corpus):
     # tune hyperparameters, hard-code for now
     from hyperopt import hp
@@ -130,7 +128,7 @@ def tune_hyperparameter(corpus):
     search_space.add(Parameter.HIDDEN_SIZE, hp.choice, options=[128, 256]),
     # search_space.add(Parameter.RNN_LAYERS, hp.choice, options=[1, 2]),
     # search_space.add(Parameter.DROPOUT, hp.uniform, low=0.0, high=0.5),
-    search_space.add(Parameter.DROPOUT, p.choice, options=[0.25, 0.5]),
+    search_space.add(Parameter.DROPOUT, hp.choice, options=[0.25, 0.5]),
     search_space.add(Parameter.LEARNING_RATE, hp.choice,
                      options=[0.05, 0.1, 0.15, 0.2]),
     search_space.add(Parameter.MINI_BATCH_SIZE, hp.choice,
@@ -172,6 +170,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Tuning with Flair')
     parser.add_argument('--config', help='Configuration File',
                         default='config.ini')
+    parser.add_argument('--mode', default='train')
+    parser.add_argument('--checkpoint',
+                        help='Checkpoint path to load from for resume mode',
+                        default=None)
+    """Modes:
+    train: train a model from scratch
+    resume: resume training from given checkpoint
+    decode: TODO
+    demo: TODO
+    hyperopt: hyperparamter-tuning with hyperopt
+    find_lr: find best learning rate
+    """
     args = parser.parse_args()
 
     config = configparser.ConfigParser(allow_no_value=True)
@@ -180,8 +190,7 @@ if __name__ == '__main__':
                'trainer_' + str(datetime.datetime.now()).replace(' ', '_'))
     corpus = get_corpus(config)
 
-    # hyperopt hyperparameter tuning
-    if config['trainer']['hyperopt']:
+    if args.mode == 'hyperopt':
         tune_hyperparameter(corpus)
     else:
         # write all configs to trainer dir
@@ -192,9 +201,26 @@ if __name__ == '__main__':
 
         embeddings = get_embeddings(config)
         tagger = get_tagger(config, corpus, embeddings)
-        trainer = get_trainer(config, corpus, tagger)
 
-        if config['trainer']['find_lr']:
-            find_lr(trainer)
+        if args.mode == 'resume':
+            trainer = ModelTrainer.load_from_checkpoint(
+                tagger.load_checkpoint(Path(args.checkpoint)),
+                corpus)
+        elif args.mode == 'finetune':
+            # TODO
+            pass
         else:
+            trainer = get_trainer(config, corpus, tagger)
+
+        if args.mode == 'find_lr':
+            find_lr(trainer)
+        elif args.mode in ['train', 'resume', 'finetune']:
             train(config, trainer)
+        elif args.mode == 'decode':
+            # TODO
+            pass
+        elif args.mode == 'demo':
+            # TODO
+            pass
+        else:
+            raise NotImplementedError('No such mode as %s!' % args.mode)
