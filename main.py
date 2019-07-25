@@ -117,20 +117,20 @@ def tune_hyperparameter(corpus):
 
     search_space = SearchSpace()
     search_space.add(Parameter.EMBEDDINGS, hp.choice, options=[
-        StackedEmbeddings([WordEmbeddings('glove')]),
-        StackedEmbeddings([WordEmbeddings('glove'), CharacterEmbeddings()]),
-        StackedEmbeddings([BertEmbeddings('bert-base-cased')]),
-        StackedEmbeddings([BertEmbeddings('bert-base-uncased')]),
+        # StackedEmbeddings([WordEmbeddings('glove')]),
+        # StackedEmbeddings([WordEmbeddings('glove'), CharacterEmbeddings()]),
+        # StackedEmbeddings([BertEmbeddings('bert-base-cased')]),
+        # StackedEmbeddings([BertEmbeddings('bert-base-uncased')]),
         StackedEmbeddings([FlairEmbeddings('news-forward'), FlairEmbeddings('news-backward')])
     ])
-    search_space.add(Parameter.HIDDEN_SIZE, hp.choice, options=[64, 128,
-                                                                256]),
-    search_space.add(Parameter.RNN_LAYERS, hp.choice, options=[1, 2]),
-    search_space.add(Parameter.DROPOUT, hp.uniform, low=0.0, high=0.5),
+    search_space.add(Parameter.HIDDEN_SIZE, hp.choice, options=[128, 256]),
+    # search_space.add(Parameter.RNN_LAYERS, hp.choice, options=[1, 2]),
+    # search_space.add(Parameter.DROPOUT, hp.uniform, low=0.0, high=0.5),
+    search_space.add(Parameter.DROPOUT, hp.choice, options=[0.25, 0.5]), 
     search_space.add(Parameter.LEARNING_RATE, hp.choice,
                      options=[0.05, 0.1, 0.15, 0.2]),
     search_space.add(Parameter.MINI_BATCH_SIZE, hp.choice,
-                     options=[16, 32, 64, 128, 256])
+                     options=[8, 16])
 
     from flair.hyperparameter.param_selection import \
         SequenceTaggerParamSelector, OptimizationValue
