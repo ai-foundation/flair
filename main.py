@@ -115,6 +115,8 @@ def tune_hyperparameter(corpus):
     # tune hyperparameters, hard-code for now
     from hyperopt import hp
     from flair.hyperparameter.param_selection import SearchSpace, Parameter
+    from flair.hyperparameter.param_selection import \
+        SequenceTaggerParamSelector, OptimizationValue
 
     search_space = SearchSpace()
     search_space.add(Parameter.EMBEDDINGS, hp.choice, options=[
@@ -145,11 +147,6 @@ def tune_hyperparameter(corpus):
 
     """
 
-
-
-    from flair.hyperparameter.param_selection import \
-        SequenceTaggerParamSelector, OptimizationValue
-
     param_selector = SequenceTaggerParamSelector(
         corpus,
         'ner',
@@ -160,6 +157,15 @@ def tune_hyperparameter(corpus):
     )
 
     param_selector.optimize(search_space)
+
+
+def find_lr(trainer):
+    # find best learning rate
+    from flair.visual.training_curves import Plotter
+    plotter = Plotter()
+    learning_rate_tsv = trainer.find_learning_rate(
+        config['trainer']['dir'], 'learning_rate.tsv')
+    plotter.plot_learning_rate(learning_rate_tsv)
 
 
 if __name__ == '__main__':
@@ -178,7 +184,6 @@ if __name__ == '__main__':
     if config['trainer']['hyperopt']:
         tune_hyperparameter(corpus)
     else:
-
         # write all configs to trainer dir
         os.mkdir(config['trainer']['dir'])
         with open(os.path.join(config['trainer']['dir'], 'config.ini'),
@@ -188,4 +193,8 @@ if __name__ == '__main__':
         embeddings = get_embeddings(config)
         tagger = get_tagger(config, corpus, embeddings)
         trainer = get_trainer(config, corpus, tagger)
-        train(config, trainer)
+
+        if config['trainer']['find_lr']:
+            find_lr(trainer)
+        else:
+            train(config, trainer)
