@@ -75,7 +75,8 @@ def query(*queries):
     _init_globals()
 
     for query in queries:
-        assert query in VALID_QUERIES, f"Invalid query {query} requested."
+        if query not in VALID_QUERIES:
+            print("Invalid query {} requested.".format(query))
         
     queries_str: str = ",".join(queries)
     
