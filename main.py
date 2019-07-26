@@ -76,7 +76,7 @@ def get_embeddings(config):
         embedding_types.append(ELMoEmbeddings(config['embeddings']['elmo']))
     if config['embeddings']['flair']:
         for i in config['embeddings']['flair'].strip().split():
-            embedding_types.append(FlairEmbeddings(i, use_cache=True))
+            embedding_types.append(FlairEmbeddings(i))
 
     embeddings: StackedEmbeddings = StackedEmbeddings(
         embeddings=embedding_types)
