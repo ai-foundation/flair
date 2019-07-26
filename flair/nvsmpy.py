@@ -77,6 +77,7 @@ def query(*queries):
     for query in queries:
         if query not in VALID_QUERIES:
             print("Invalid query {} requested.".format(query))
+            assert False
         
     queries_str: str = ",".join(queries)
     
