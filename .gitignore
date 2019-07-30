@@ -109,3 +109,5 @@ Pipfile.lock
 
 resources/taggers/
 regression_train/
+
+valid_queries.json
