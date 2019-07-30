@@ -106,7 +106,7 @@ def train(config, trainer):
         # num_workers=6,
         # sampler=None,
         summary_dir=config['trainer']['dir'],
-        early_lr_update=config['trainer']['early_lr_udpate'],
+        early_lr_update=config['trainer']['early_lr_update'],
         early_lr_start=config['trainer']['early_lr_start'],
         early_lr_stride=config['trainer']['early_lr_stride']
     )
