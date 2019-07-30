@@ -107,8 +107,8 @@ def train(config, trainer):
         # sampler=None,
         summary_dir=config['trainer']['dir'],
         early_lr_update=config['trainer']['early_lr_update'],
-        early_lr_start=config['trainer']['early_lr_start'],
-        early_lr_stride=config['trainer']['early_lr_stride']
+        early_lr_start=int(config['trainer']['early_lr_start']),
+        early_lr_stride=int(config['trainer']['early_lr_stride'])
     )
 
 
