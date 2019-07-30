@@ -185,7 +185,7 @@ class ModelTrainer:
         dev_loss_history = []
         train_loss_history = []
         best_epoch = self.epoch
-        total_batches_seen = 0
+
         # At any point you can hit Ctrl + C to break out of training early.
         try:
             previous_learning_rate = learning_rate
@@ -232,8 +232,6 @@ class ModelTrainer:
 
                 modulo = max(1, int(total_number_of_batches / 10))
 
-                result_line: str = ""
-
                 # process mini-batches
                 for batch_no, batch in enumerate(batch_loader):
 
@@ -249,37 +247,6 @@ class ModelTrainer:
 
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(batch, embedding_storage_mode)
-
-                    if total_batches_seen >= early_lr_start and (
-                        total_batches_seen - early_lr_start) % early_lr_stride == 0 and early_lr_update is True:
-                        self.model.eval()
-                        dev_eval_result, dev_loss = self.model.evaluate(
-                            DataLoader(
-                                self.corpus.dev,
-                                batch_size=eval_mini_batch_size,
-                                num_workers=num_workers,
-                            )
-                        )
-                        result_line += f"\t{dev_loss}\t{dev_eval_result.log_line}"
-                        log.info(
-                            f"DEV : loss {dev_loss} - score {dev_eval_result.main_score}"
-                        )
-                        # calculate scores using dev data if available
-                        # append dev score to score history
-                        dev_score_history.append(dev_eval_result.main_score)
-                        dev_loss_history.append(dev_loss)
-
-                        current_score = dev_eval_result.main_score
-
-                        dev_loss_, dev_score_ = dev_loss, dev_eval_result.main_score
-
-                        if epoch > min_epoch_before_aggressive_update:
-                            scheduler.step(current_score)
-                        # depending on memory mode, embeddings are moved to CPU, GPU or deleted
-                        store_embeddings(self.corpus.dev,
-                                         embedding_storage_mode)
-                        self.model.train()
-                    total_batches_seen += 1
 
                     if batch_no % modulo == 0:
                         log.info(
@@ -305,7 +272,7 @@ class ModelTrainer:
                 current_score = train_loss
 
                 # evaluate on train / dev / test split depending on training settings
-                # result_line: str = ""
+                result_line: str = ""
 
                 train_loss_ = dev_loss_ = test_loss_ = None
                 train_score_ = dev_score_ = test_score_ = None
@@ -326,7 +293,7 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.train, embedding_storage_mode)
 
-                if log_dev and not early_lr_update:
+                if log_dev:
                     dev_eval_result, dev_loss = self.model.evaluate(
                         DataLoader(
                             self.corpus.dev,
