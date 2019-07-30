@@ -26,9 +26,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 log = logging.getLogger("flair")
 
-early_lr_update = True
-early_lr_start = 3
-early_lr_stride = 4
 
 class ModelTrainer:
     def __init__(
@@ -71,6 +68,9 @@ class ModelTrainer:
         num_workers: int = 6,
         sampler=None,
         summary_dir: str = None,
+        early_lr_update: bool = True,
+        early_lr_start: int = 100,
+        early_lr_stride: int = 100,
         **kwargs,
     ) -> dict:
         """
@@ -247,7 +247,9 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(batch, embedding_storage_mode)
 
-                    if total_batches_seen >= early_lr_start and (total_batches_seen - early_lr_start) % early_lr_stride == 0 and early_lr_update is True:
+                    if early_lr_update and \
+                        total_batches_seen >= early_lr_start and (
+                        total_batches_seen - early_lr_start) % early_lr_stride == 0:
                         self.model.eval()
                         dev_eval_result, dev_loss = self.model.evaluate(
                             DataLoader(
@@ -272,10 +274,11 @@ class ModelTrainer:
                         if epoch > min_epoch_before_aggressive_update:
                             scheduler.step(current_score)
                         # depending on memory mode, embeddings are moved to CPU, GPU or deleted
-                        store_embeddings(self.corpus.dev, embedding_storage_mode)
+                        store_embeddings(self.corpus.dev,
+                                         embedding_storage_mode)
                         self.model.train()
                     total_batches_seen += 1
-                    
+
                     if batch_no % modulo == 0:
                         log.info(
                             f"epoch {epoch + 1} - iter {batch_no}/{total_number_of_batches} - loss "

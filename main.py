@@ -100,12 +100,15 @@ def train(config, trainer):
         embedding_storage_mode=config['trainer']['embedding_storage_mode'],
         checkpoint=True,
         save_final_model=True,
-        anneal_with_restarts=True,
+        anneal_with_restarts=config['trainer']['anneal_with_restarts'],
         shuffle=True,
         param_selection_mode=False,
         # num_workers=6,
         # sampler=None,
         summary_dir=config['trainer']['dir'],
+        early_lr_update=config['trainer']['early_lr_udpate'],
+        early_lr_start=config['trainer']['early_lr_start'],
+        early_lr_stride=config['trainer']['early_lr_stride']
     )
 
 
