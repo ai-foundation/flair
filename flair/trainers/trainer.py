@@ -247,6 +247,7 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(batch, embedding_storage_mode)
 
+                    result_line: str = ""
                     if early_lr_update and \
                         total_batches_seen >= early_lr_start and (
                         total_batches_seen - early_lr_start) % early_lr_stride == 0:
@@ -303,7 +304,7 @@ class ModelTrainer:
                 current_score = train_loss
 
                 # evaluate on train / dev / test split depending on training settings
-                result_line: str = ""
+                # result_line: str = ""
 
                 train_loss_ = dev_loss_ = test_loss_ = None
                 train_score_ = dev_score_ = test_score_ = None

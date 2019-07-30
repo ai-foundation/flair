@@ -137,17 +137,6 @@ def tune_hyperparameter(corpus):
     search_space.add(Parameter.MINI_BATCH_SIZE, hp.choice,
                      options=[8, 16])
 
-    """
-    2019-07-24 23:47:51,591 Optimizing parameter configuration done.
-2019-07-24 23:47:51,591 Best parameter configuration found:
-2019-07-24 23:47:51,591         dropout: 0
-2019-07-24 23:47:51,592         embeddings: 0
-2019-07-24 23:47:51,592         hidden_size: 1
-2019-07-24 23:47:51,592         learning_rate: 2
-2019-07-24 23:47:51,592         mini_batch_size: 0
-
-    """
-
     param_selector = SequenceTaggerParamSelector(
         corpus,
         'ner',
