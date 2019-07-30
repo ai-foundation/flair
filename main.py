@@ -108,7 +108,8 @@ def train(config, trainer):
         summary_dir=config['trainer']['dir'],
         early_lr_update=config['trainer']['early_lr_update'],
         early_lr_start=int(config['trainer']['early_lr_start']),
-        early_lr_stride=int(config['trainer']['early_lr_stride'])
+        early_lr_stride=int(config['trainer']['early_lr_stride']),
+        min_epoch_before_aggressive_update=int(config['trainer']['min_eopch'])
     )
 
 
