@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 import torch
 
-from .available import get_free_gpus
+
+# from .available import get_free_gpus
 
 
 def get_avail_device() -> torch.device:
