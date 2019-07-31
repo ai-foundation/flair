@@ -1,11 +1,14 @@
-import torch
 import os
+
+import torch
 
 from .available import get_free_gpus
 
+
 def get_avail_device() -> torch.device:
-    gpu_id = get_free_gpus()[0] # select the first gpu
+    gpu_id = get_free_gpus()[0]  # select the first gpu
     return torch.device(f"cuda:{gpu_id}")
+
 
 # global variable: cache_root
 cache_root = os.path.expanduser(os.path.join("~", ".flair"))
@@ -41,7 +44,8 @@ logging.config.dictConfig(
             }
         },
         "loggers": {
-            "flair": {"handlers": ["console"], "level": "INFO", "propagate": False}
+            "flair": {"handlers": ["console"], "level": "INFO",
+                      "propagate": False}
         },
         "root": {"handlers": ["console"], "level": "WARNING"},
     }
