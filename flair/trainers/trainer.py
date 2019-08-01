@@ -274,7 +274,7 @@ class ModelTrainer:
                         # as #batch * batch size, which is what's anticipated
                         # as shuffle is set to True in DataLoader, datapoints
                         # should all have an equal probability to be seen
-                        continue
+                        break
 
                 train_loss /= seen_batches
 
