@@ -72,9 +72,8 @@ class ModelTrainer:
         sampler=None,
         summary_dir: str = None,
         early_lr_update: bool = True,
-        early_lr_start: int = 100,
-        early_lr_stride: int = 100,
-        min_epoch_before_aggressive_update: int = 3,
+        early_lr_start_batch: int = None,
+        early_lr_stride_batch: int = None,
         **kwargs,
     ) -> dict:
         """
@@ -265,10 +264,10 @@ class ModelTrainer:
                             )
 
                     if early_lr_update and \
-                        self.total_seen_batches > self.early_lr_stride_batch \
+                        self.total_seen_batches > early_lr_start_batch \
                         and (self.total_seen_batches -
-                             self.early_lr_stride_batch) % \
-                        self.early_lr_stride_batch == 0:
+                             early_lr_start_batch) % \
+                        early_lr_stride_batch == 0:
                         # TODO
                         # instead of evaluate, log, etc. all agian, directly
                         # quit the current epoch ans see this partial epoch
