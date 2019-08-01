@@ -37,6 +37,7 @@ class ModelTrainer:
         loss: float = 10000.0,
         optimizer_state: dict = None,
         scheduler_state: dict = None,
+
     ):
         self.model: flair.nn.Model = model
         self.corpus: Corpus = corpus
@@ -45,6 +46,8 @@ class ModelTrainer:
         self.loss: float = loss
         self.scheduler_state: dict = scheduler_state
         self.optimizer_state: dict = optimizer_state
+
+        self.total_seen_batches = 0  # global, used for aggressive lr update
 
     def train(
         self,
@@ -227,7 +230,8 @@ class ModelTrainer:
 
                 train_loss: float = 0
 
-                seen_batches = 0
+                seen_batches = 0  # local, seen batches in current epoch,
+                # used for logging train loss
                 total_number_of_batches = len(batch_loader)
 
                 modulo = max(1, int(total_number_of_batches / 10))
@@ -243,6 +247,7 @@ class ModelTrainer:
                     optimizer.step()
 
                     seen_batches += 1
+                    self.total_seen_batches += 1
                     train_loss += loss.item()
 
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
@@ -258,6 +263,19 @@ class ModelTrainer:
                             weight_extractor.extract_weights(
                                 self.model.state_dict(), iteration
                             )
+
+                    if early_lr_update and \
+                        self.total_seen_batches > self.early_lr_stride_batch \
+                        and (self.total_seen_batches -
+                             self.early_lr_stride_batch) % \
+                        self.early_lr_stride_batch == 0:
+                        # TODO
+                        # instead of evaluate, log, etc. all agian, directly
+                        # quit the current epoch ans see this partial epoch
+                        # as #batch * batch size, which is what's anticipated
+                        # as shuffle is set to True in DataLoader, datapoints
+                        # should all have an equal probability to be seen
+                        continue
 
                 train_loss /= seen_batches
 

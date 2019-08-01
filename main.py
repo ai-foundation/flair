@@ -57,7 +57,7 @@ def get_trainer(config, corpus, tagger):
     trainer: ModelTrainer = ModelTrainer(
         tagger,
         corpus,
-        optimizer=get_optimizer(config)
+        optimizer=get_optimizer(config),
     )
     return trainer
 
@@ -101,16 +101,14 @@ def train(config, trainer):
         checkpoint=True,
         save_final_model=True,
         anneal_with_restarts=config['trainer']['anneal_with_restarts'],
-        shuffle=True,
+        shuffle=True,  # set True for aggressive lr update
         param_selection_mode=False,
-        # num_workers=6,
+        num_workers=12,  # 12 CPUs per GPU on current instance # TODO
         # sampler=None,
         summary_dir=config['trainer']['dir'],
         early_lr_update=config['trainer']['early_lr_update'],
-        early_lr_start=int(config['trainer']['early_lr_start']),
-        early_lr_stride=int(config['trainer']['early_lr_stride']),
-        min_epoch_before_aggressive_update=int(
-            config['trainer']['min_epoch_before_aggressive_update'])
+        early_lr_start_batch=int(config['trainer']['early_lr_start_batch']),
+        early_lr_stride_batch=int(config['trainer']['early_lr_stride_batch'])
     )
 
 
@@ -200,7 +198,8 @@ if __name__ == '__main__':
         if args.mode == 'resume':
             trainer = ModelTrainer.load_from_checkpoint(
                 tagger.load_checkpoint(Path(args.checkpoint)),
-                corpus)
+                corpus,
+            )
         elif args.mode == 'finetune':
             # TODO
             pass
