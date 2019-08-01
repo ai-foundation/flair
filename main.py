@@ -38,7 +38,7 @@ def get_tagger(config, corpus, embeddings):
         embeddings=embeddings,
         tag_dictionary=tag_dictionary,
         tag_type=tag_type,
-        use_crf=config['tagger'].get_boolean('use_crf'),
+        use_crf=config['tagger'].getboolean('use_crf'),
         dropout=float(config['tagger']['dropout'])
     )
     return tagger
@@ -95,20 +95,20 @@ def train(config, trainer):
         patience=int(config['trainer']['patience']),
         min_learning_rate=float(config['trainer']['min_learning_rate']),
         train_with_dev=False,
-        monitor_train=config['trainer'].get_boolean('monitor_train'),
-        monitor_test=config['trainer'].get_boolean('monitor_test'),
-        embedding_storage_mode=config['trainer'].get_boolean(
+        monitor_train=config['trainer'].getboolean('monitor_train'),
+        monitor_test=config['trainer'].getboolean('monitor_test'),
+        embedding_storage_mode=config['trainer'].getboolean(
             'embedding_storage_mode'),
         checkpoint=True,
         save_final_model=True,
-        anneal_with_restarts=config['trainer'].get_boolean(
+        anneal_with_restarts=config['trainer'].getboolean(
             'anneal_with_restarts'),
         shuffle=True,  # set True for aggressive lr update
         param_selection_mode=False,
         num_workers=12,  # 12 CPUs per GPU on current instance # TODO
         # sampler=None,
         summary_dir=config['trainer']['dir'],
-        early_lr_update=config['trainer'].get_boolean('early_lr_update'),
+        early_lr_update=config['trainer'].getboolean('early_lr_update'),
         early_lr_start_batch=int(config['trainer']['early_lr_start_batch']),
         early_lr_stride_batch=int(config['trainer']['early_lr_stride_batch'])
     )
