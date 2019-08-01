@@ -365,22 +365,36 @@ class ModelTrainer:
 
                 # TODO add graph
                 if summary_dir:
-                    writer.add_scalars(
-                        'data/losses', {
-                            'Train loss': train_loss_,
-                            'Dev loss': dev_loss_,
-                            'Test loss': test_loss_
-                        }, epoch + 1)
-
-                    writer.add_scalars(
-                        'data/scores', {
-                            'Train score': train_score_,
-                            'Dev score': dev_score_,
-                            'Test score': test_score_
-                        }, epoch + 1)
                     writer.add_scalar(
                         'data/learning_rate', learning_rate, epoch + 1
                     )
+                    if log_train:
+                        writer.add_scalars(
+                            'data/losses', {
+                                'Train loss': train_loss_,
+                            }, epoch + 1)
+                        writer.add_scalars(
+                            'data/scores', {
+                                'Train score': train_score_,
+                            }, epoch + 1)
+                    if log_dev:
+                        writer.add_scalars(
+                            'data/losses', {
+                                'Dev loss': dev_loss_,
+                            }, epoch + 1)
+                        writer.add_scalars(
+                            'data/scores', {
+                                'Dev score': dev_score_,
+                            }, epoch + 1)
+                    if log_test:
+                        writer.add_scalars(
+                            'data/losses', {
+                                'Test loss': test_loss_,
+                            }, epoch + 1)
+                        writer.add_scalars(
+                            'data/scores', {
+                                'Test score': test_score_,
+                            }, epoch + 1)
 
                 # determine learning rate annealing through scheduler
                 scheduler.step(current_score)
