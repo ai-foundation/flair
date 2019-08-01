@@ -274,6 +274,17 @@ class ModelTrainer:
                         # as #batch * batch size, which is what's anticipated
                         # as shuffle is set to True in DataLoader, datapoints
                         # should all have an equal probability to be seen
+
+                        log.info(
+                            f"epoch {epoch + 1} - iter {batch_no}/{total_number_of_batches} - loss "
+                            f"{train_loss / seen_batches:.8f}"
+                        )
+                        iteration = epoch * total_number_of_batches + batch_no
+                        if not param_selection_mode:
+                            weight_extractor.extract_weights(
+                                self.model.state_dict(), iteration
+                            )
+
                         break
 
                 train_loss /= seen_batches
