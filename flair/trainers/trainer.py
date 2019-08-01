@@ -366,7 +366,9 @@ class ModelTrainer:
                 # TODO add graph
                 if summary_dir:
                     writer.add_scalar(
-                        'data/learning_rate', learning_rate, epoch + 1
+                        'data/learning_rate', {
+                            'Learning rate': learning_rate
+                        }, epoch + 1
                     )
                     if log_train:
                         writer.add_scalars(
