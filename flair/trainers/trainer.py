@@ -42,7 +42,7 @@ class ModelTrainer:
         loss: float = 10000.0,
         optimizer_state: dict = None,
         scheduler_state: dict = None,
-        use_tensorboard: bool = False,
+        use_tensorboard: bool = True,
     ):
         self.model: flair.nn.Model = model
         self.corpus: Corpus = corpus
@@ -415,6 +415,7 @@ class ModelTrainer:
                 scheduler.step(current_score)
 
                 train_loss_history.append(train_loss)
+                best_epoch = self.epoch
 
                 # determine bad epoch number
                 try:
@@ -473,6 +474,7 @@ class ModelTrainer:
                         epoch + 1,
                         train_loss,
                     )
+                    best_epoch = epoch
 
                 # if we use dev data, remember best model based on dev evaluation score
                 if (
@@ -497,6 +499,8 @@ class ModelTrainer:
                 log.info("Saving model ...")
                 self.model.save(base_path / "final-model.pt")
                 log.info("Done.")
+
+        log.info('Best dev epoch is %d' % best_epoch)
 
         # test best model if test data is present
         if self.corpus.test:
@@ -534,6 +538,24 @@ class ModelTrainer:
         if (base_path / "best-model.pt").exists():
             self.model = self.model.load(base_path / "best-model.pt")
 
+        # Final best dev results
+
+        log.info('Best dev results:')
+        dev_results, dev_loss = self.model.evaluate(
+            DataLoader(
+                self.corpus.dev,
+                batch_size=eval_mini_batch_size,
+                num_workers=num_workers,
+            ),
+            out_path=base_path / "dev.tsv",
+        )
+        dev_results: Result = dev_results
+        log.info(dev_results.log_line)
+        log.info(dev_results.detailed_results)
+        log_line(log)
+        log_line(log)
+
+        log.info('Test result on best dev epoch:')
         test_results, test_loss = self.model.evaluate(
             DataLoader(
                 self.corpus.test,
