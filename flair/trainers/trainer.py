@@ -110,7 +110,7 @@ class ModelTrainer:
         :return:
         """
 
-        start_time = time.time()
+        total_start_time = time.time()
 
         if self.use_tensorboard:
             try:
@@ -507,7 +507,7 @@ class ModelTrainer:
             log.info("Test data not provided setting final score to 0")
 
         log.info('Total training time is %.2f h',
-                 (time.time() - start_time) / 3600)
+                 (time.time() - total_start_time) / 3600)
         log_line(log)
 
         log.removeHandler(log_handler)
