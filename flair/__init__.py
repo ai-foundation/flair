@@ -1,13 +1,35 @@
-import torch
 import os
+
+import torch
 
 # global variable: cache_root
 cache_root = os.path.expanduser(os.path.join("~", ".flair"))
 
-# global variable: device
+import numpy as np
+
+
+# # global variable: device
+# device = None
+# if torch.cuda.is_available():
+#     device = torch.device("cuda:0")
+# else:
+#     device = torch.device("cpu")
+def get_avail_device() -> torch.device:
+    # gpu_id = get_free_gpus()[0]  # select the first gpu
+    gpu_id = get_freer_gpu()
+    return torch.device(f"cuda:{gpu_id}")
+
+
+def get_freer_gpu():
+    # https: // discuss.pytorch.org / t / it - there - anyway - to - let - program - select - free - gpu - automatically / 17560 / 2
+    os.system('nvidia-smi -q -d Memory |grep -A4 GPU|grep Free >tmp')
+    memory_available = [int(x.split()[2]) for x in open('tmp', 'r').readlines()]
+    return np.argmax(memory_available)
+
+
 device = None
 if torch.cuda.is_available():
-    device = torch.device("cuda:0")
+    device = get_avail_device()
 else:
     device = torch.device("cpu")
 
@@ -35,7 +57,8 @@ logging.config.dictConfig(
             }
         },
         "loggers": {
-            "flair": {"handlers": ["console"], "level": "INFO", "propagate": False}
+            "flair": {"handlers": ["console"], "level": "INFO",
+                      "propagate": False}
         },
         "root": {"handlers": ["console"], "level": "WARNING"},
     }
