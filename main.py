@@ -119,7 +119,9 @@ def train(config, trainer):
         summary_dir=config['trainer']['dir'],
         early_lr_update=config['trainer'].getboolean('early_lr_update'),
         early_lr_start_batch=int(config['trainer']['early_lr_start_batch']),
-        early_lr_stride_batch=int(config['trainer']['early_lr_stride_batch'])
+        early_lr_stride_batch=int(config['trainer']['early_lr_stride_batch']),
+        batch_drop_rate=float(config['trainer']['batch_drop_rate']) if
+        config['trainer']['batch_drop_rate'] else 0
     )
 
 
@@ -190,7 +192,7 @@ if __name__ == '__main__':
 
     config = configparser.ConfigParser(allow_no_value=True)
     config.read(args.config)
-    if not config['trainer']['dir']:
+    if 'dir' not in config['trainer'] or not config['trainer']['dir']:
         config.set('trainer', 'dir',
                    'trainer_' + str(datetime.datetime.now()).replace(' ', '_'))
 

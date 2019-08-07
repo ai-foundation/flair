@@ -1,5 +1,6 @@
 import datetime
 import logging
+import random
 import sys
 import time
 from pathlib import Path
@@ -82,6 +83,7 @@ class ModelTrainer:
         early_lr_stride_batch: int = None,
         use_amp: bool = False,
         amp_opt_level: str = "O1",
+        batch_drop_rate: float = 1,
         **kwargs,
     ) -> dict:
         """
@@ -108,6 +110,7 @@ class ModelTrainer:
         parameter selection.
         :param num_workers: Number of workers in your data loader.
         :param sampler: You can pass a data sampler here for special sampling of data.
+        :param batch_drop_rate: Dropping rate of current batch
         :param kwargs: Other arguments for the Optimizer
         :return:
         """
@@ -270,6 +273,14 @@ class ModelTrainer:
                 # process mini-batches
                 batch_time = 0
                 for batch_no, batch in enumerate(batch_loader):
+
+                    seen_batches += 1
+                    self.total_seen_batches += 1
+
+                    # skip this batch with batch_drop_rate
+                    if random.random() < batch_drop_rate:
+                        continue
+
                     start_time = time.time()
                     loss = self.model.forward_loss(batch)
 
@@ -284,8 +295,6 @@ class ModelTrainer:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), 5.0)
                     optimizer.step()
 
-                    seen_batches += 1
-                    self.total_seen_batches += 1
                     train_loss += loss.item()
 
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
