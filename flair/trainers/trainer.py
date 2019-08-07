@@ -501,7 +501,6 @@ class ModelTrainer:
                         epoch + 1,
                         train_loss,
                     )
-                    best_epoch = epoch
 
                 # if we use dev data, remember best model based on dev evaluation score
                 if (
@@ -510,6 +509,7 @@ class ModelTrainer:
                     and current_score == scheduler.best
                 ):
                     self.model.save(base_path / "best-model.pt")
+                    best_epoch = epoch
 
             # if we do not use dev data for model selection, save final model
             if save_final_model and not param_selection_mode:
