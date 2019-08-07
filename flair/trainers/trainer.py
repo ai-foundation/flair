@@ -599,7 +599,7 @@ class ModelTrainer:
             checkpoint["model"],
             corpus,
             optimizer,
-            epoch=checkpoint["epoch"] if not epoch else epoch,
+            epoch=checkpoint["epoch"] if epoch is None else epoch,
             loss=checkpoint["loss"],
             optimizer_state=checkpoint["optimizer_state_dict"],
             scheduler_state=checkpoint["scheduler_state_dict"],
