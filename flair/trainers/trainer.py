@@ -217,6 +217,7 @@ class ModelTrainer:
         dev_score_history = []
         dev_loss_history = []
         train_loss_history = []
+        best_epoch = self.epoch
 
         # At any point you can hit Ctrl + C to break out of training early.
         try:
@@ -415,7 +416,6 @@ class ModelTrainer:
                 scheduler.step(current_score)
 
                 train_loss_history.append(train_loss)
-                best_epoch = self.epoch
 
                 # determine bad epoch number
                 try:
