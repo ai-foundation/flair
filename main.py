@@ -214,7 +214,7 @@ if __name__ == '__main__':
             # TODO
             pass
         elif args.mode == 'test':
-            trainer = get_trainer(config, corpus, tagger, checkpoint)
+            trainer = get_trainer(config, corpus, tagger, args.checkpoint)
         else:
             trainer = get_trainer(config, corpus, tagger)
 
