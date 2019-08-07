@@ -53,6 +53,8 @@ class ModelTrainer:
         self.optimizer_state: dict = optimizer_state
         self.use_tensorboard: bool = use_tensorboard
 
+        self.total_seen_batches = 0
+
     def train(
         self,
         base_path: Union[Path, str],
@@ -283,6 +285,7 @@ class ModelTrainer:
                     optimizer.step()
 
                     seen_batches += 1
+                    self.total_seen_batches += 1
                     train_loss += loss.item()
 
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
@@ -300,6 +303,30 @@ class ModelTrainer:
                             weight_extractor.extract_weights(
                                 self.model.state_dict(), iteration
                             )
+
+                    if early_lr_update and \
+                        self.total_seen_batches > early_lr_start_batch \
+                        and (self.total_seen_batches -
+                             early_lr_start_batch) % \
+                        early_lr_stride_batch == 0:
+                        # TODO
+                        # instead of evaluate, log, etc. all agian, directly
+                        # quit the current epoch ans see this partial epoch
+                        # as #batch * batch size, which is what's anticipated
+                        # as shuffle is set to True in DataLoader, datapoints
+                        # should all have an equal probability to be seen
+
+                        # log.info(
+                        #     f"epoch {epoch + 1} - iter {batch_no}/{total_number_of_batches} - loss "
+                        #     f"{train_loss / seen_batches:.8f}"
+                        # )
+                        # iteration = epoch * total_number_of_batches + batch_no
+                        # if not param_selection_mode:
+                        #     weight_extractor.extract_weights(
+                        #         self.model.state_dict(), iteration
+                        #     )
+
+                        break
 
                 train_loss /= seen_batches
 
