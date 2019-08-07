@@ -592,13 +592,14 @@ class ModelTrainer:
 
     @classmethod
     def load_from_checkpoint(
-        cls, checkpoint, corpus: Corpus, optimizer: torch.optim.Optimizer = SGD
+        cls, checkpoint, corpus: Corpus, optimizer: torch.optim.Optimizer =
+        SGD, epoch=None
     ):
         return ModelTrainer(
             checkpoint["model"],
             corpus,
             optimizer,
-            epoch=checkpoint["epoch"],
+            epoch=checkpoint["epoch"] if not epoch else epoch,
             loss=checkpoint["loss"],
             optimizer_state=checkpoint["optimizer_state_dict"],
             scheduler_state=checkpoint["scheduler_state_dict"],
