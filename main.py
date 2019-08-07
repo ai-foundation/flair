@@ -121,7 +121,7 @@ def train(config, trainer):
         early_lr_start_batch=int(config['trainer']['early_lr_start_batch']),
         early_lr_stride_batch=int(config['trainer']['early_lr_stride_batch']),
         batch_drop_rate=float(config['trainer']['batch_drop_rate']) if
-        config['trainer']['batch_drop_rate'] else 0
+        'batch_drop_rate' in config['trainer'] else 0
     )
 
 
