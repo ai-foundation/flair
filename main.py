@@ -54,6 +54,7 @@ def get_optimizer(config):
 
 
 def get_trainer(config, corpus, tagger, checkpoint=None):
+    """Always set starting epoch to 0 for modes test and finetune"""
     if not checkpoint:
         trainer: ModelTrainer = ModelTrainer(
             tagger,
@@ -210,10 +211,7 @@ if __name__ == '__main__':
                 tagger.load_checkpoint(Path(args.checkpoint)),
                 corpus,
             )
-        elif args.mode == 'finetune':
-            # TODO
-            pass
-        elif args.mode == 'test':
+        elif args.mode in ['finetune', 'test']:
             trainer = get_trainer(config, corpus, tagger, args.checkpoint)
         else:
             trainer = get_trainer(config, corpus, tagger)
