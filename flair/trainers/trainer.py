@@ -527,7 +527,7 @@ class ModelTrainer:
                 self.model.save(base_path / "final-model.pt")
                 log.info("Done.")
 
-        log.info('Best dev epoch is', best_epoch)
+        log.info('Best dev epoch is %d' % best_epoch)
 
         # test best model if test data is present
         if self.corpus.test:
@@ -537,8 +537,10 @@ class ModelTrainer:
             final_score = 0
             log.info("Test data not provided setting final score to 0")
 
-        log.info('Total training time is %.2f h',
-                 (time.time() - total_start_time) / 3600)
+        log.info('Total training time is %.2f h or %.2f s' % (
+            (time.time() - total_start_time) / 3600,
+            time.time() - total_start_time)
+                 )
         log_line(log)
 
         log.removeHandler(log_handler)
