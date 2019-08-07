@@ -220,7 +220,7 @@ if __name__ == '__main__':
 
         if args.mode == 'find_lr':
             find_lr(trainer)
-        elif args.mode in ['train', 'resume', 'finetune']:
+        elif args.mode in ['train', 'resume', 'finetune', 'test']:
             train(config, trainer)
         elif args.mode == 'decode':
             # TODO
