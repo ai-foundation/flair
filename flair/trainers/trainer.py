@@ -500,7 +500,7 @@ class ModelTrainer:
                 self.model.save(base_path / "final-model.pt")
                 log.info("Done.")
 
-        log.info('Best dev epoch is %d' % best_epoch)
+        log.info('Best dev epoch is', best_epoch)
 
         # test best model if test data is present
         if self.corpus.test:

@@ -53,13 +53,20 @@ def get_optimizer(config):
     return optimizer_dict[config['trainer']['optimizer']]
 
 
-def get_trainer(config, corpus, tagger):
-    trainer: ModelTrainer = ModelTrainer(
-        tagger,
-        corpus,
-        optimizer=get_optimizer(config),
-        use_tensorboard=True
-    )
+def get_trainer(config, corpus, tagger, checkpoint=None):
+    if not checkpoint:
+        trainer: ModelTrainer = ModelTrainer(
+            tagger,
+            corpus,
+            optimizer=get_optimizer(config),
+            use_tensorboard=True
+        )
+    else:
+        trainer = ModelTrainer.load_from_checkpoint(
+            tagger.load_checkpoint(Path(checkpoint)),
+            corpus,
+            epoch=0
+        )
     return trainer
 
 
@@ -206,6 +213,8 @@ if __name__ == '__main__':
         elif args.mode == 'finetune':
             # TODO
             pass
+        elif args.mode == 'test':
+            trainer = get_trainer(config, corpus, tagger, checkpoint)
         else:
             trainer = get_trainer(config, corpus, tagger)
 
