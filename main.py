@@ -106,8 +106,7 @@ def train(config, trainer):
         train_with_dev=False,
         monitor_train=config['trainer'].getboolean('monitor_train'),
         monitor_test=config['trainer'].getboolean('monitor_test'),
-        embeddings_storage_mode=config['trainer'].getboolean(
-            'embedding_storage_mode'),
+        embeddings_storage_mode=config['trainer']['embedding_storage_mode'],
         checkpoint=True,
         save_final_model=True,
         anneal_with_restarts=config['trainer'].getboolean(
