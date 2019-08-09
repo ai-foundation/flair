@@ -113,8 +113,8 @@ def train(config, trainer):
             'anneal_with_restarts'),
         shuffle=True,  # set True for aggressive lr update
         param_selection_mode=False,
-        num_workers=12,  # 12 CPUs per GPU on current instance # TODO
-        # sampler=None,
+        # num_workers=12,  # 12 CPUs per GPU on current instance # TODO
+        sampler=None,
         summary_dir=config['trainer']['dir'],
         early_lr_update=config['trainer'].getboolean('early_lr_update'),
         early_lr_start_batch=int(config['trainer']['early_lr_start_batch']),
