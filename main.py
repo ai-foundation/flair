@@ -192,11 +192,15 @@ if __name__ == '__main__':
     config = configparser.ConfigParser(allow_no_value=True)
     config.read(args.config)
 
-    if args.mode == 'demo':
+    if args.mode != 'demo':
         if 'dir' not in config['trainer'] or not config['trainer']['dir']:
             config.set('trainer', 'dir',
                        'trainer_' + str(datetime.datetime.now()).replace(' ',
                                                                          '_'))
+            os.mkdir(config['trainer']['dir'])
+            with open(os.path.join(config['trainer']['dir'], 'config.ini'),
+                      'w') as f:
+                config.write(f)
     else:
         pass
 
@@ -205,12 +209,6 @@ if __name__ == '__main__':
     if args.mode == 'hyperopt':
         tune_hyperparameter(corpus)
     else:
-        # write all configs to trainer dir
-        os.mkdir(config['trainer']['dir'])
-        with open(os.path.join(config['trainer']['dir'], 'config.ini'),
-                  'w') as f:
-            config.write(f)
-
         embeddings = get_embeddings(config)
         tagger = get_tagger(config, corpus, embeddings)
 
@@ -219,8 +217,10 @@ if __name__ == '__main__':
                 tagger.load_checkpoint(Path(args.checkpoint)),
                 corpus,
             )
-        elif args.mode in ['finetune', 'test', 'demo']:
+        elif args.mode in ['finetune', 'test']:
             trainer = get_trainer(config, corpus, tagger, args.checkpoint)
+        elif args.mode == 'demo':
+            trainer = get_trainer(config, None, tagger, args.checkpoint)
         else:
             trainer = get_trainer(config, corpus, tagger)
 
