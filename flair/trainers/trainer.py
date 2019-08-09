@@ -632,9 +632,7 @@ class ModelTrainer:
         """Demo in terminal: read sentence, deocde and output"""
 
         self.model.eval()
-
-        # TODO
-
+        print('Input a sentence in a line:')
         while True:
             try:
                 sent = sys.stdin.readline()
@@ -644,14 +642,14 @@ class ModelTrainer:
                         Sentence(sent),
                         embedding_storage_mode='gpu'  # TODO which mode
                     )
-                    test = res[0]
-                    import pdb; pdb.set_trace()
-                    print(res[0].to_tagged_stirng())
+                    print(res[0].to_tagged_string())
+
                 except Exception as e:
                     return 'Error'
 
 
             except KeyboardInterrupt:
+                print('Prediction finished. Exiting...')
                 exit()
 
     @classmethod
