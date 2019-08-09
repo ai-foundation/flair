@@ -191,9 +191,14 @@ if __name__ == '__main__':
 
     config = configparser.ConfigParser(allow_no_value=True)
     config.read(args.config)
-    if 'dir' not in config['trainer'] or not config['trainer']['dir']:
-        config.set('trainer', 'dir',
-                   'trainer_' + str(datetime.datetime.now()).replace(' ', '_'))
+
+    if args.mode == 'demo':
+        if 'dir' not in config['trainer'] or not config['trainer']['dir']:
+            config.set('trainer', 'dir',
+                       'trainer_' + str(datetime.datetime.now()).replace(' ',
+                                                                         '_'))
+    else:
+        pass
 
     corpus = get_corpus(config)
 
