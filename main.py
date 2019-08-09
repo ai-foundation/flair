@@ -214,7 +214,7 @@ if __name__ == '__main__':
                 tagger.load_checkpoint(Path(args.checkpoint)),
                 corpus,
             )
-        elif args.mode in ['finetune', 'test']:
+        elif args.mode in ['finetune', 'test', 'demo']:
             trainer = get_trainer(config, corpus, tagger, args.checkpoint)
         else:
             trainer = get_trainer(config, corpus, tagger)
@@ -227,7 +227,6 @@ if __name__ == '__main__':
             # TODO
             pass
         elif args.mode == 'demo':
-            # TODO
-            pass
+            trainer.demo()
         else:
             raise NotImplementedError('No such mode as %s!' % args.mode)
