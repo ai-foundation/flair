@@ -19,7 +19,7 @@ from torch.optim import SGD, Adam
 
 
 def get_corpus(config):
-    columns = {0: 'text', 1: 'ner'}
+    columns = {0: 'text', 1: config['tagger']['tag_type']}
     corpus: Corpus = ColumnCorpus(
         config['corpus']['dir'],
         columns,
