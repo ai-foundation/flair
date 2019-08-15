@@ -18,7 +18,7 @@ except ImportError:
 
 import flair
 import flair.nn
-from flair.data import MultiCorpus, Corpus
+from flair.data import MultiCorpus, Corpus, Sentence
 from flair.datasets import DataLoader
 from flair.optim import ExpAnnealLR
 from flair.training_utils import (
@@ -627,6 +627,30 @@ class ModelTrainer:
         final_score = test_results.main_score
 
         return final_score
+
+    def demo(self):
+        """Demo in terminal: read sentence, deocde and output"""
+
+        self.model.eval()
+        print('Input a sentence in a line:')
+        while True:
+            try:
+                sent = sys.stdin.readline()
+
+                try:
+                    res = self.model.predict(
+                        Sentence(sent),
+                        embedding_storage_mode='gpu'  # TODO which mode
+                    )
+                    print(res[0].to_tagged_string())
+
+                except Exception as e:
+                    return 'Error'
+
+
+            except KeyboardInterrupt:
+                print('Prediction finished. Exiting...')
+                exit()
 
     @classmethod
     def load_from_checkpoint(

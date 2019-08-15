@@ -113,8 +113,8 @@ def train(config, trainer):
             'anneal_with_restarts'),
         shuffle=True,  # set True for aggressive lr update
         param_selection_mode=False,
-        num_workers=12,  # 12 CPUs per GPU on current instance # TODO
-        # sampler=None,
+        # num_workers=12,  # 12 CPUs per GPU on current instance # TODO
+        sampler=None,
         summary_dir=config['trainer']['dir'],
         early_lr_update=config['trainer'].getboolean('early_lr_update'),
         early_lr_start_batch=int(config['trainer']['early_lr_start_batch']),
@@ -191,21 +191,24 @@ if __name__ == '__main__':
 
     config = configparser.ConfigParser(allow_no_value=True)
     config.read(args.config)
-    if 'dir' not in config['trainer'] or not config['trainer']['dir']:
-        config.set('trainer', 'dir',
-                   'trainer_' + str(datetime.datetime.now()).replace(' ', '_'))
+
+    if args.mode != 'demo':
+        if 'dir' not in config['trainer'] or not config['trainer']['dir']:
+            config.set('trainer', 'dir',
+                       'trainer_' + str(datetime.datetime.now()).replace(' ',
+                                                                         '_'))
+            os.mkdir(config['trainer']['dir'])
+            with open(os.path.join(config['trainer']['dir'], 'config.ini'),
+                      'w') as f:
+                config.write(f)
+    else:
+        pass
 
     corpus = get_corpus(config)
 
     if args.mode == 'hyperopt':
         tune_hyperparameter(corpus)
     else:
-        # write all configs to trainer dir
-        os.mkdir(config['trainer']['dir'])
-        with open(os.path.join(config['trainer']['dir'], 'config.ini'),
-                  'w') as f:
-            config.write(f)
-
         embeddings = get_embeddings(config)
         tagger = get_tagger(config, corpus, embeddings)
 
@@ -216,6 +219,8 @@ if __name__ == '__main__':
             )
         elif args.mode in ['finetune', 'test']:
             trainer = get_trainer(config, corpus, tagger, args.checkpoint)
+        elif args.mode == 'demo':
+            trainer = get_trainer(config, None, tagger, args.checkpoint)
         else:
             trainer = get_trainer(config, corpus, tagger)
 
@@ -227,7 +232,6 @@ if __name__ == '__main__':
             # TODO
             pass
         elif args.mode == 'demo':
-            # TODO
-            pass
+            trainer.demo()
         else:
             raise NotImplementedError('No such mode as %s!' % args.mode)
