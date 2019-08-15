@@ -198,9 +198,9 @@ if __name__ == '__main__':
                        'trainer_' + str(datetime.datetime.now()).replace(' ',
                                                                          '_'))
             os.mkdir(config['trainer']['dir'])
-            with open(os.path.join(config['trainer']['dir'], 'config.ini'),
-                      'w') as f:
-                config.write(f)
+        with open(os.path.join(config['trainer']['dir'], 'config.ini'),
+                  'w') as f:
+            config.write(f)
     else:
         pass
 
