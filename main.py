@@ -73,19 +73,20 @@ def get_trainer(config, corpus, tagger, checkpoint=None):
 
 def get_embeddings(config):
     embedding_types: List[TokenEmbeddings] = []
+    fine_tune = config['embeddings'].getboolean('fine_tune') if 'fine_tune' in config['embeddings'] else False,
     if config['embeddings']['char']:
         embedding_types.append(CharacterEmbeddings(
             hidden_size_char=int(config['embeddings']['hidden_size_char']),
             char_embedding_dim=int(config['embeddings']['char_embedding_dim'])))
     if config['embeddings']['word']:  # TODO other than glove
-        embedding_types.append(WordEmbeddings(config['embeddings']['word']))
+        embedding_types.append(WordEmbeddings(config['embeddings']['word'], fine_tune=fine_tune))
     if config['embeddings']['bert']:
-        embedding_types.append(BertEmbeddings(config['embeddings']['bert']))
+        embedding_types.append(BertEmbeddings(config['embeddings']['bert'], fine_tune=fine_tune))  # TODO layers
     if config['embeddings']['elmo']:
-        embedding_types.append(ELMoEmbeddings(config['embeddings']['elmo']))
+        embedding_types.append(ELMoEmbeddings(config['embeddings']['elmo'], fine_tune=fine_tune))
     if config['embeddings']['flair']:
         for i in config['embeddings']['flair'].strip().split():
-            embedding_types.append(FlairEmbeddings(i))
+            embedding_types.append(FlairEmbeddings(i, fine_tune=fine_tune))  # TODO embedding-specific fine_tune mode?
 
     embeddings: StackedEmbeddings = StackedEmbeddings(
         embeddings=embedding_types)
@@ -183,7 +184,6 @@ if __name__ == '__main__':
     train: train a model from scratch
     resume: resume training from given checkpoint
     decode: TODO
-    demo: TODO
     hyperopt: hyperparamter-tuning with hyperopt
     find_lr: find best learning rate
     """
@@ -204,7 +204,6 @@ if __name__ == '__main__':
 
     if args.mode == 'test':
         config.set('trainer', 'max_epochs', '0')
-
 
     corpus = get_corpus(config)
 
