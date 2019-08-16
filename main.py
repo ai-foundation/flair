@@ -203,7 +203,7 @@ if __name__ == '__main__':
             config.write(f)
 
     if args.mode == 'test':
-        config.set('trainer', 'max_epochs', 0)
+        config.set('trainer', 'max_epochs', '0')
 
 
     corpus = get_corpus(config)
