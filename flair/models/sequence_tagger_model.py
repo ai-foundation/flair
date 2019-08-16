@@ -314,12 +314,12 @@ class SequenceTagger(flair.nn.Model):
 
             cm = confusion_matrix(true_labels, pred_labels, all_labels)
             cm_result = "\nConfusion Matrix\n         "
-            for i in all_labels:
-                cm_result += "%8s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE', '')
-            for i in all_labels:
-                cm_result += "\n%7s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE', '')
-                for j in cm[i]:
-                    cm_result += "%8d" % j
+            for i in all_labels[1:-2]:
+                cm_result += "%7s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE', '')
+            for i in all_labels[1:-2]:
+                cm_result += "\n%6s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE', '')
+                for j in cm[i][1:-2]:
+                    cm_result += "%7d" % j
             cm_result += '\n'
 
             if out_path is not None:
