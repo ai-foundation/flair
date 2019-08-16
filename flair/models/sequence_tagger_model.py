@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 import torch.nn
+from sklearn.metrics import confusion_matrix
 from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 
@@ -68,19 +69,19 @@ def pad_tensors(tensor_list):
 
 class SequenceTagger(flair.nn.Model):
     def __init__(
-        self,
-        hidden_size: int,
-        embeddings: TokenEmbeddings,
-        tag_dictionary: Dictionary,
-        tag_type: str,
-        use_crf: bool = True,
-        use_rnn: bool = True,
-        rnn_layers: int = 1,
-        dropout: float = 0.0,
-        word_dropout: float = 0.05,
-        locked_dropout: float = 0.5,
-        train_initial_hidden_state: bool = False,
-        pickle_module: str = "pickle",
+            self,
+            hidden_size: int,
+            embeddings: TokenEmbeddings,
+            tag_dictionary: Dictionary,
+            tag_type: str,
+            use_crf: bool = True,
+            use_rnn: bool = True,
+            rnn_layers: int = 1,
+            dropout: float = 0.0,
+            word_dropout: float = 0.05,
+            locked_dropout: float = 0.5,
+            train_initial_hidden_state: bool = False,
+            pickle_module: str = "pickle",
     ):
 
         super(SequenceTagger, self).__init__()
@@ -175,10 +176,10 @@ class SequenceTagger(flair.nn.Model):
                 torch.randn(self.tagset_size, self.tagset_size)
             )
             self.transitions.detach()[
-                self.tag_dictionary.get_idx_for_item(START_TAG), :
+            self.tag_dictionary.get_idx_for_item(START_TAG), :
             ] = -10000
             self.transitions.detach()[
-                :, self.tag_dictionary.get_idx_for_item(STOP_TAG)
+            :, self.tag_dictionary.get_idx_for_item(STOP_TAG)
             ] = -10000
 
         self.to(flair.device)
@@ -233,10 +234,10 @@ class SequenceTagger(flair.nn.Model):
         return model
 
     def evaluate(
-        self,
-        data_loader: DataLoader,
-        out_path: Path = None,
-        embeddings_storage_mode: str = "cpu",
+            self,
+            data_loader: DataLoader,
+            out_path: Path = None,
+            embeddings_storage_mode: str = "cpu",
     ) -> (Result, float):
 
         with torch.no_grad():
@@ -245,6 +246,10 @@ class SequenceTagger(flair.nn.Model):
             batch_no: int = 0
 
             metric = Metric("Evaluation")
+
+            # log all tags including O for confusion matrix
+            true_labels = []
+            pred_labels = []
 
             lines: List[str] = []
             for batch in data_loader:
@@ -257,9 +262,16 @@ class SequenceTagger(flair.nn.Model):
 
                 eval_loss += loss
 
+                for s in tags:
+                    for t in s:
+                        pred_labels.append(self.tag_dictionary.get_idx_for_item(t.value))
+
                 for (sentence, sent_tags) in zip(batch, tags):
                     for (token, tag) in zip(sentence.tokens, sent_tags):
                         token: Token = token
+
+                        true_labels.append(self.tag_dictionary.get_idx_for_item(token.get_tag('ner').value))
+
                         token.add_tag_label("predicted", tag)
 
                         # append both to file for evaluation
@@ -298,6 +310,18 @@ class SequenceTagger(flair.nn.Model):
 
             eval_loss /= batch_no
 
+            all_labels = list(range(len(self.tag_dictionary.get_items())))
+
+            cm = confusion_matrix(true_labels, pred_labels, all_labels)
+            cm_result = "\nConfusion Matrix\n         "
+            for i in all_labels:
+                cm_result += "%8s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE', '')
+            for i in all_labels:
+                cm_result += "\n%7s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE', '')
+                for j in cm[i]:
+                    cm_result += "%8d" % j
+            cm_result += '\n'
+
             if out_path is not None:
                 with open(out_path, "w", encoding="utf-8") as outfile:
                     outfile.write("".join(lines))
@@ -314,6 +338,9 @@ class SequenceTagger(flair.nn.Model):
                     f"accuracy: {metric.accuracy(class_name):.4f} - f1-score: "
                     f"{metric.f_score(class_name):.4f}"
                 )
+            detailed_result += cm_result
+
+            print(detailed_result)
 
             result = Result(
                 main_score=metric.micro_avg_f_score(),
@@ -325,17 +352,17 @@ class SequenceTagger(flair.nn.Model):
             return result, eval_loss
 
     def forward_loss(
-        self, data_points: Union[List[Sentence], Sentence], sort=True
+            self, data_points: Union[List[Sentence], Sentence], sort=True
     ) -> torch.tensor:
         features = self.forward(data_points)
         return self._calculate_loss(features, data_points)
 
     def predict(
-        self,
-        sentences: Union[List[Sentence], Sentence],
-        mini_batch_size=32,
-        embedding_storage_mode="none",
-        verbose=False,
+            self,
+            sentences: Union[List[Sentence], Sentence],
+            mini_batch_size=32,
+            embedding_storage_mode="none",
+            verbose=False,
     ) -> List[Sentence]:
         with torch.no_grad():
             if isinstance(sentences, Sentence):
@@ -351,7 +378,7 @@ class SequenceTagger(flair.nn.Model):
 
             # make mini-batches
             batches = [
-                filtered_sentences[x : x + mini_batch_size]
+                filtered_sentences[x: x + mini_batch_size]
                 for x in range(0, len(filtered_sentences), mini_batch_size)
             ]
 
@@ -370,7 +397,7 @@ class SequenceTagger(flair.nn.Model):
 
                 for (sentence, sent_tags, sent_all_tags) in zip(batch, tags, all_tags):
                     for (token, tag, token_all_tags) in zip(
-                        sentence.tokens, sent_tags, sent_all_tags
+                            sentence.tokens, sent_tags, sent_all_tags
                     ):
                         token.add_tag_label(self.tag_type, tag)
                         token.add_tags_proba_dist(self.tag_type, token_all_tags)
@@ -478,7 +505,7 @@ class SequenceTagger(flair.nn.Model):
         pad_stop_tags = torch.cat([tags, stop], 1)
 
         for i in range(len(lens_)):
-            pad_stop_tags[i, lens_[i] :] = self.tag_dictionary.get_idx_for_item(
+            pad_stop_tags[i, lens_[i]:] = self.tag_dictionary.get_idx_for_item(
                 STOP_TAG
             )
 
@@ -496,7 +523,7 @@ class SequenceTagger(flair.nn.Model):
         return score
 
     def _calculate_loss(
-        self, scores: torch.tensor, sentences: List[Sentence]
+            self, scores: torch.tensor, sentences: List[Sentence]
     ) -> torch.tensor:
 
         sentences.sort(key=lambda x: len(x), reverse=True)
@@ -531,7 +558,7 @@ class SequenceTagger(flair.nn.Model):
         else:
             score = 0
             for sentence_feats, sentence_tags, sentence_length in zip(
-                features, tags, lengths
+                    features, tags, lengths
             ):
                 sentence_feats = sentence_feats[:sentence_length]
 
@@ -542,7 +569,7 @@ class SequenceTagger(flair.nn.Model):
             return score
 
     def _obtain_labels(
-        self, feature, sentences
+            self, feature, sentences
     ) -> (List[List[Label]], List[List[List[Label]]]):
         """
         Returns a tuple of two lists:
@@ -604,8 +631,8 @@ class SequenceTagger(flair.nn.Model):
 
         for feat in feats:
             next_tag_var = (
-                forward_var.view(1, -1).expand(self.tagset_size, self.tagset_size)
-                + self.transitions
+                    forward_var.view(1, -1).expand(self.tagset_size, self.tagset_size)
+                    + self.transitions
             )
             _, bptrs_t = torch.max(next_tag_var, dim=1)
             viterbivars_t = next_tag_var[range(len(bptrs_t)), bptrs_t]
@@ -614,8 +641,8 @@ class SequenceTagger(flair.nn.Model):
             backpointers.append(bptrs_t)
 
         terminal_var = (
-            forward_var
-            + self.transitions[self.tag_dictionary.get_idx_for_item(STOP_TAG)]
+                forward_var
+                + self.transitions[self.tag_dictionary.get_idx_for_item(STOP_TAG)]
         )
         terminal_var.detach()[self.tag_dictionary.get_idx_for_item(STOP_TAG)] = -10000.0
         terminal_var.detach()[
@@ -640,7 +667,7 @@ class SequenceTagger(flair.nn.Model):
         start = best_path.pop()
         assert start == self.tag_dictionary.get_idx_for_item(START_TAG)
         best_path.reverse()
-        
+
         for index, (tag_id, tag_scores) in enumerate(zip(best_path, scores)):
             if type(tag_id) != int and tag_id.item() != np.argmax(tag_scores):
                 swap_index_score = np.argmax(tag_scores)
@@ -654,7 +681,7 @@ class SequenceTagger(flair.nn.Model):
                     scores[index][swap_index_score],
                     scores[index][tag_id],
                 )
-				
+
         return best_scores, best_path, scores
 
     def _forward_alg(self, feats, lens_):
@@ -680,11 +707,11 @@ class SequenceTagger(flair.nn.Model):
             emit_score = feats[:, i, :]
 
             tag_var = (
-                emit_score[:, :, None].repeat(1, 1, transitions.shape[2])
-                + transitions
-                + forward_var[:, i, :][:, :, None]
-                .repeat(1, 1, transitions.shape[2])
-                .transpose(2, 1)
+                    emit_score[:, :, None].repeat(1, 1, transitions.shape[2])
+                    + transitions
+                    + forward_var[:, i, :][:, :, None]
+                    .repeat(1, 1, transitions.shape[2])
+                    .transpose(2, 1)
             )
 
             max_tag_var, _ = torch.max(tag_var, dim=2)
@@ -703,8 +730,8 @@ class SequenceTagger(flair.nn.Model):
         forward_var = forward_var[range(forward_var.shape[0]), lens_, :]
 
         terminal_var = forward_var + self.transitions[
-            self.tag_dictionary.get_idx_for_item(STOP_TAG)
-        ][None, :].repeat(forward_var.shape[0], 1)
+                                         self.tag_dictionary.get_idx_for_item(STOP_TAG)
+                                     ][None, :].repeat(forward_var.shape[0], 1)
 
         alpha = log_sum_exp_batch(terminal_var)
 
