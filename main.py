@@ -201,8 +201,10 @@ if __name__ == '__main__':
         with open(os.path.join(config['trainer']['dir'], 'config.ini'),
                   'w') as f:
             config.write(f)
-    else:
-        pass
+
+    if args.mode == 'test':
+        config.set('trainer', 'max_epochs', 0)
+
 
     corpus = get_corpus(config)
 
