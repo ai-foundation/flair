@@ -79,7 +79,8 @@ def get_embeddings(config):
             hidden_size_char=int(config['embeddings']['hidden_size_char']),
             char_embedding_dim=int(config['embeddings']['char_embedding_dim'])))
     if config['embeddings']['word']:  # TODO other than glove
-        embedding_types.append(WordEmbeddings(config['embeddings']['word'], fine_tune=fine_tune))
+        embedding_types.append(
+            WordEmbeddings(config['embeddings']['word']))  # word(glove) can't be fine-tuned in current flair codebase
     if config['embeddings']['bert']:
         embedding_types.append(BertEmbeddings(config['embeddings']['bert'], fine_tune=fine_tune))  # TODO layers
     if config['embeddings']['elmo']:
