@@ -729,7 +729,7 @@ class ModelTrainer:
                 if loss_item < best_loss:
                     best_loss = loss
 
-            if stop_early and (loss_item > 4 * best_loss or torch.isnan(loss)):
+            if stop_early and (loss_item > 2 * best_loss or torch.isnan(loss)):
                 log_line(log)
                 log.info("loss diverged - stopping early!")
                 break
