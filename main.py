@@ -82,7 +82,22 @@ def get_embeddings(config):
         embedding_types.append(
             WordEmbeddings(config['embeddings']['word']))  # word(glove) can't be fine-tuned in current flair codebase
     if config['embeddings']['bert']:
-        embedding_types.append(BertEmbeddings(config['embeddings']['bert'], fine_tune=fine_tune))  # TODO layers
+        model_name, layers, pooling_operation = config['embeddings']['bert'].strip().split()
+        embedding_types.append(BertEmbeddings(
+            model_name,
+            layers=layers,
+            pooling_operation=pooling_operation,
+            # use_scalar_mix=use_scalar_mix == 'True',
+            fine_tune=fine_tune))  # TODO layers
+    if config['embeddings']['roberta']:
+        model_name, layers, pooling_operation = config['embeddings']['bert'].strip().split()
+        embedding_types.append(RoBERTaEmbeddings(
+            model_name,
+            layers=layers,
+            pooling_operation=pooling_operation,
+            # use_scalar_mix=use_scalar_mix == 'True',
+            fine_tune=fine_tune))  # TODO layers
+
     if config['embeddings']['elmo']:
         embedding_types.append(ELMoEmbeddings(config['embeddings']['elmo'], fine_tune=fine_tune))
     if config['embeddings']['flair']:
