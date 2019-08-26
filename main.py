@@ -26,7 +26,11 @@ def get_corpus(config):
         train_file=config['corpus']['train_file'],
         dev_file=config['corpus']['dev_file'],
         test_file=config['corpus']['test_file'],
-    ).downsample(float(config['corpus']['downsample']))
+    ).downsample(
+        float(config['corpus']['downsample']),
+        only_downsample_train=config['corpus']['only_downsample_train'] == 'True' if 'only_downsample_train' in config[
+            'corpus'] else False
+    )
     return corpus
 
 
