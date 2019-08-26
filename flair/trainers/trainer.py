@@ -418,7 +418,7 @@ class ModelTrainer:
                         prev_dev_score = dev_score_history[0]
                     else:
                         prev_dev_score = 1  # TODO
-                    if current_score < prev_dev_score:
+                    if current_score >= prev_dev_score:
                         log_line(log)
                         log.info("Dev score not improving for 3 epochs - quitting training!")
                         log_line(log)
