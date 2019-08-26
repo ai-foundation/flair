@@ -319,7 +319,7 @@ class ModelTrainer:
                                  early_lr_start_batch) % \
                             early_lr_stride_batch == 0:
                         # TODO
-                        # instead of evaluate, log, etc. all agian, directly
+                        # instead of evaluate, log, etc. all again, directly
                         # quit the current epoch ans see this partial epoch
                         # as #batch * batch size, which is what's anticipated
                         # as shuffle is set to True in DataLoader, datapoints
@@ -387,9 +387,12 @@ class ModelTrainer:
                         embeddings_storage_mode=embeddings_storage_mode,
                     )
                     result_line += f"\t{dev_loss}\t{dev_eval_result.log_line}"
+
                     log.info(
                         f"DEV : loss {dev_loss} - score {dev_eval_result.main_score}"
                     )
+                    log.info(dev_eval_result.detailed_results)
+
                     # calculate scores using dev data if available
                     # append dev score to score history
                     dev_score_history.append(dev_eval_result.main_score)
@@ -412,8 +415,8 @@ class ModelTrainer:
                         )
 
                     # TODO or if dev score not improving for certain epochs
-                    if epoch >= 3:
-                        prev_dev_score = dev_score_history[epoch - 3]
+                    if epoch >= 5:
+                        prev_dev_score = dev_score_history[epoch - 5]
                     else:
                         prev_dev_score = 1  # TODO
                     if current_score >= prev_dev_score:
