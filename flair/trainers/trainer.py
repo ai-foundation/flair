@@ -120,7 +120,6 @@ class ModelTrainer:
         if self.use_tensorboard:
             try:
                 from torch.utils.tensorboard import SummaryWriter
-
                 writer = SummaryWriter(summary_dir)
             except:
                 log_line(log)
@@ -363,7 +362,7 @@ class ModelTrainer:
                     )
                     result_line += f"\t{train_eval_result.log_line}"
 
-                    if self.use_tensorboard:
+                    if self.use_tensorboard and writer:
                         writer.add_scalars(
                             "data/losses",
                             {'train_loss': train_loss},
@@ -403,7 +402,7 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.dev, embeddings_storage_mode)
 
-                    if self.use_tensorboard:
+                    if self.use_tensorboard and writer:
                         writer.add_scalars(
                             "data/losses",
                             {'dev_loss': dev_loss},
@@ -443,7 +442,7 @@ class ModelTrainer:
                     # depending on memory mode, embeddings are moved to CPU, GPU or deleted
                     store_embeddings(self.corpus.test, embeddings_storage_mode)
 
-                    if self.use_tensorboard:
+                    if self.use_tensorboard and writer:
                         writer.add_scalars(
                             "data/losses",
                             {'test_loss': test_loss},
@@ -455,7 +454,7 @@ class ModelTrainer:
                         )
 
                 # TODO add graph
-                if summary_dir:
+                if self.use_tensorboard and summary_dir and writer:
                     writer.add_scalars(
                         'data/learning_rate', {
                             'learning_rate': learning_rate
@@ -542,7 +541,7 @@ class ModelTrainer:
             log_line(log)
             log.info("Exiting from training early.")
 
-            if self.use_tensorboard:
+            if self.use_tensorboard and writer:
                 writer.close()
 
             if not param_selection_mode:
@@ -568,7 +567,7 @@ class ModelTrainer:
 
         log.removeHandler(log_handler)
 
-        if self.use_tensorboard:
+        if self.use_tensorboard and writer:
             writer.close()
 
         return {
