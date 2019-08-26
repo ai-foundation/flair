@@ -35,15 +35,15 @@ log = logging.getLogger("flair")
 
 class ModelTrainer:
     def __init__(
-        self,
-        model: flair.nn.Model,
-        corpus: Corpus,
-        optimizer: torch.optim.Optimizer = SGD,
-        epoch: int = 0,
-        loss: float = 10000.0,
-        optimizer_state: dict = None,
-        scheduler_state: dict = None,
-        use_tensorboard: bool = True,
+            self,
+            model: flair.nn.Model,
+            corpus: Corpus,
+            optimizer: torch.optim.Optimizer = SGD,
+            epoch: int = 0,
+            loss: float = 10000.0,
+            optimizer_state: dict = None,
+            scheduler_state: dict = None,
+            use_tensorboard: bool = True,
     ):
         self.model: flair.nn.Model = model
         self.corpus: Corpus = corpus
@@ -57,34 +57,34 @@ class ModelTrainer:
         self.total_seen_batches = 0
 
     def train(
-        self,
-        base_path: Union[Path, str],
-        learning_rate: float = 0.1,
-        mini_batch_size: int = 32,
-        eval_mini_batch_size: int = None,
-        max_epochs: int = 100,
-        anneal_factor: float = 0.5,
-        patience: int = 3,
-        min_learning_rate: float = 0.0001,
-        train_with_dev: bool = False,
-        monitor_train: bool = False,
-        monitor_test: bool = False,
-        embeddings_storage_mode: str = "cpu",
-        checkpoint: bool = False,
-        save_final_model: bool = True,
-        anneal_with_restarts: bool = False,
-        shuffle: bool = True,
-        param_selection_mode: bool = False,
-        num_workers: int = 6,
-        sampler=None,
-        summary_dir: str = None,
-        early_lr_update: bool = None,
-        early_lr_start_batch: int = None,
-        early_lr_stride_batch: int = None,
-        use_amp: bool = False,
-        amp_opt_level: str = "O1",
-        batch_drop_rate: float = 1,
-        **kwargs,
+            self,
+            base_path: Union[Path, str],
+            learning_rate: float = 0.1,
+            mini_batch_size: int = 32,
+            eval_mini_batch_size: int = None,
+            max_epochs: int = 100,
+            anneal_factor: float = 0.5,
+            patience: int = 3,
+            min_learning_rate: float = 0.0001,
+            train_with_dev: bool = False,
+            monitor_train: bool = False,
+            monitor_test: bool = False,
+            embeddings_storage_mode: str = "cpu",
+            checkpoint: bool = False,
+            save_final_model: bool = True,
+            anneal_with_restarts: bool = False,
+            shuffle: bool = True,
+            param_selection_mode: bool = False,
+            num_workers: int = 6,
+            sampler=None,
+            summary_dir: str = None,
+            early_lr_update: bool = None,
+            early_lr_start_batch: int = None,
+            early_lr_stride_batch: int = None,
+            use_amp: bool = False,
+            amp_opt_level: str = "O1",
+            batch_drop_rate: float = 1,
+            **kwargs,
     ) -> dict:
         """
         Trains any class that implements the flair.nn.Model interface.
@@ -237,9 +237,9 @@ class ModelTrainer:
 
                 # reload last best model if annealing with restarts is enabled
                 if (
-                    learning_rate != previous_learning_rate
-                    and anneal_with_restarts
-                    and (base_path / "best-model.pt").exists()
+                        learning_rate != previous_learning_rate
+                        and anneal_with_restarts
+                        and (base_path / "best-model.pt").exists()
                 ):
                     log.info("resetting to best model")
                     self.model.load(base_path / "best-model.pt")
@@ -314,10 +314,10 @@ class ModelTrainer:
                             )
 
                     if early_lr_update and \
-                        self.total_seen_batches > early_lr_start_batch \
-                        and (self.total_seen_batches -
-                             early_lr_start_batch) % \
-                        early_lr_stride_batch == 0:
+                            self.total_seen_batches > early_lr_start_batch \
+                            and (self.total_seen_batches -
+                                 early_lr_start_batch) % \
+                            early_lr_stride_batch == 0:
                         # TODO
                         # instead of evaluate, log, etc. all agian, directly
                         # quit the current epoch ans see this partial epoch
@@ -410,6 +410,19 @@ class ModelTrainer:
                             {'dev_score': dev_eval_result.main_score},
                             epoch + 1
                         )
+
+                    # TODO or if dev score not improving for certain epochs
+                    if epoch >= 3:
+                        prev_dev_score = dev_score_history[epoch - 3]
+                    elif epoch > 0:
+                        prev_dev_score = dev_score_history[0]
+                    else:
+                        prev_dev_score = 1  # TODO
+                    if current_score < prev_dev_score:
+                        log_line(log)
+                        log.info("Dev score not improving for 3 epochs - quitting training!")
+                        log_line(log)
+                        break
 
                 if log_test:
                     test_eval_result, test_loss = self.model.evaluate(
@@ -513,9 +526,9 @@ class ModelTrainer:
 
                 # if we use dev data, remember best model based on dev evaluation score
                 if (
-                    not train_with_dev
-                    and not param_selection_mode
-                    and current_score == scheduler.best
+                        not train_with_dev
+                        and not param_selection_mode
+                        and current_score == scheduler.best
                 ):
                     self.model.save(base_path / "best-model.pt")
                     best_epoch = epoch
@@ -565,7 +578,7 @@ class ModelTrainer:
         }
 
     def final_test(
-        self, base_path: Path, eval_mini_batch_size: int, num_workers: int = 8
+            self, base_path: Path, eval_mini_batch_size: int, num_workers: int = 8
     ):
 
         log_line(log)
@@ -654,8 +667,8 @@ class ModelTrainer:
 
     @classmethod
     def load_from_checkpoint(
-        cls, checkpoint, corpus: Corpus, optimizer: torch.optim.Optimizer =
-        SGD, epoch=None
+            cls, checkpoint, corpus: Corpus, optimizer: torch.optim.Optimizer =
+            SGD, epoch=None
     ):
         return ModelTrainer(
             checkpoint["model"],
@@ -668,16 +681,16 @@ class ModelTrainer:
         )
 
     def find_learning_rate(
-        self,
-        base_path: Union[Path, str],
-        file_name: str = "learning_rate.tsv",
-        start_learning_rate: float = 1e-7,
-        end_learning_rate: float = 10,
-        iterations: int = 100,
-        mini_batch_size: int = 32,
-        stop_early: bool = True,
-        smoothing_factor: float = 0.98,
-        **kwargs,
+            self,
+            base_path: Union[Path, str],
+            file_name: str = "learning_rate.tsv",
+            start_learning_rate: float = 1e-7,
+            end_learning_rate: float = 10,
+            iterations: int = 100,
+            mini_batch_size: int = 32,
+            stop_early: bool = True,
+            smoothing_factor: float = 0.98,
+            **kwargs,
     ) -> Path:
         best_loss = None
         moving_avg_loss = 0
@@ -721,11 +734,11 @@ class ModelTrainer:
             else:
                 if smoothing_factor > 0:
                     moving_avg_loss = (
-                        smoothing_factor * moving_avg_loss
-                        + (1 - smoothing_factor) * loss_item
+                            smoothing_factor * moving_avg_loss
+                            + (1 - smoothing_factor) * loss_item
                     )
                     loss_item = moving_avg_loss / (
-                        1 - smoothing_factor ** (itr + 1))
+                            1 - smoothing_factor ** (itr + 1))
                 if loss_item < best_loss:
                     best_loss = loss
 
