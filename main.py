@@ -87,8 +87,9 @@ def get_embeddings(config):
             model_name,
             layers=layers,
             pooling_operation=pooling_operation,
-            use_scalar_mix=use_scalar_mix == 'True',
-            fine_tune=fine_tune))  # TODO layers
+            use_scalar_mix=use_scalar_mix == 'True'
+            # fine_tune=fine_tune
+        ))
     if config['embeddings']['roberta']:
         model_name, layers, pooling_operation, use_scalar_mix = config['embeddings']['roberta'].strip().split()
         embedding_types.append(RoBERTaEmbeddings(
@@ -96,7 +97,8 @@ def get_embeddings(config):
             layers=layers,
             pooling_operation=pooling_operation,
             use_scalar_mix=use_scalar_mix == 'True',
-            fine_tune=fine_tune))  # TODO layers
+            # fine_tune=fine_tune
+        ))
 
     if config['embeddings']['elmo']:
         embedding_types.append(ELMoEmbeddings(config['embeddings']['elmo'], fine_tune=fine_tune))
