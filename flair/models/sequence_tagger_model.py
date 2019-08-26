@@ -321,7 +321,7 @@ class SequenceTagger(flair.nn.Model):
             elif 'S-4' in self.tag_dictionary.get_items():
                 tag_names = ['O', 'S-1', 'S-2', 'S-3', 'S-4']
             else:
-                tag_names = ['O', 'S-0', 'S-1', 'S-2', 'S-3']
+                tag_names = ['O', 'S-1', 'S-2', 'S-3']
 
             ordered_labels = [self.tag_dictionary.get_idx_for_item(i) for i in tag_names]
 
