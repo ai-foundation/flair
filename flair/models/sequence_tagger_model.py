@@ -312,7 +312,7 @@ class SequenceTagger(flair.nn.Model):
 
             all_labels = list(range(len(self.tag_dictionary.get_items())))
             # TODO change names
-            if 'PAUSE' in self.tag_dictionary.get_items():
+            if 'S-LONG_PAUSE' in self.tag_dictionary.get_items():
                 if 'S-MICRO_PAUSE' in self.tag_dictionary.get_items():
                     tag_names = ['O', 'S-MICRO_PAUSE', 'S-MINI_PAUSE', 'S-SHORT_PAUSE', 'S-MEDIUM_PAUSE',
                                  'S-LONG_PAUSE']
@@ -327,7 +327,7 @@ class SequenceTagger(flair.nn.Model):
                     tag_names = ['O', 'S-1', 'S-2', 'S-3']
                 else:
                     tag_names = ['O', 'S-1', 'S-2']
-                    
+
             ordered_labels = [self.tag_dictionary.get_idx_for_item(i) for i in tag_names]
 
             cm = confusion_matrix(true_labels, pred_labels, all_labels)
