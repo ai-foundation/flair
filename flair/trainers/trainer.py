@@ -414,13 +414,13 @@ class ModelTrainer:
                         )
 
                     # TODO or if dev score not improving for certain epochs
-                    if epoch >= 5:
-                        prev_dev_score = dev_score_history[epoch - 5]
+                    if epoch >= patience:
+                        prev_dev_score = dev_score_history[epoch - patience]
                     else:
                         prev_dev_score = 1  # TODO
-                    if current_score >= prev_dev_score:
+                    if current_score <= prev_dev_score:
                         log_line(log)
-                        log.info("Dev score not improving for 3 epochs - quitting training!")
+                        log.info("Dev score not improving for %d epochs - quitting training!" % patience)
                         log_line(log)
                         break
 
@@ -742,7 +742,7 @@ class ModelTrainer:
                 if loss_item < best_loss:
                     best_loss = loss
 
-            if stop_early and (loss_item > 2 * best_loss or torch.isnan(loss)):
+            if stop_early and (loss_item > 4 * best_loss or torch.isnan(loss)):
                 log_line(log)
                 log.info("loss diverged - stopping early!")
                 break
