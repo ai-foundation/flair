@@ -417,7 +417,7 @@ class ModelTrainer:
                     if epoch >= patience:
                         prev_dev_score = dev_score_history[epoch - patience]
                     else:
-                        prev_dev_score = 1  # TODO
+                        prev_dev_score = 0  # TODO
                     if current_score <= prev_dev_score:
                         log_line(log)
                         log.info("Dev score not improving for %d epochs - quitting training!" % patience)
