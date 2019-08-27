@@ -336,17 +336,11 @@ class SequenceTagger(flair.nn.Model):
 
             cm_result = "\nConfusion Matrix\n      "
             for i in ordered_labels:
-                if 'S-LONG_PAUSE' in ordered_labels:
-                    cm_result += "%7s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE',
-                                                                                                             '')
-                else:
-                    cm_result += "%7s" % self.tag_dictionary.get_item_for_index(i)
+                cm_result += "%7s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE', '')
+                # cm_result += "%7s" % self.tag_dictionary.get_item_for_index(i)
             for i in ordered_labels:
-                if 'S-LONG_PAUSE' in ordered_labels:
-                    cm_result += "\n%6s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE',
-                                                                                                               '')
-                else:
-                    cm_result += "\n%6s" % self.tag_dictionary.get_item_for_index(i)
+                cm_result += "\n%6s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE', '')
+                # cm_result += "\n%6s" % self.tag_dictionary.get_item_for_index(i)
                 for j in ordered_labels:
                     cm_result += "%7d" % cm[i][j]
             cm_result += '\n'
