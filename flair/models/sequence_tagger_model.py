@@ -1,27 +1,21 @@
-import warnings
 import logging
 from pathlib import Path
-
-import torch.nn
-from sklearn.metrics import confusion_matrix
-from torch.nn.parameter import Parameter
-import torch.nn.functional as F
+from typing import List, Union
 
 import flair.nn
+import numpy as np
 import torch
-
-from flair.data import Dictionary, Sentence, Token, Label
+import torch.nn
+import torch.nn.functional as F
+from flair.data import Dictionary, Label, Sentence, Token
 from flair.datasets import DataLoader
 from flair.embeddings import TokenEmbeddings
 from flair.file_utils import cached_path
-
-from typing import List, Tuple, Union
-
 from flair.training_utils import Metric, Result, store_embeddings
-
-from tqdm import tqdm
+from sklearn.metrics import classification_report, confusion_matrix
 from tabulate import tabulate
-import numpy as np
+from torch.nn.parameter import Parameter
+from tqdm import tqdm
 
 log = logging.getLogger("flair")
 
@@ -343,6 +337,13 @@ class SequenceTagger(flair.nn.Model):
                     cm_result += "%7d" % cm[i][j]
             cm_result += '\n'
 
+            # classification report
+
+            # classification reprt
+
+            cr = classification_report(true_labels, pred_labels, target_names=ordered_labels, digits=4)
+            cr += '\n'
+
             if out_path is not None:
                 with open(out_path, "w", encoding="utf-8") as outfile:
                     outfile.write("".join(lines))
@@ -360,6 +361,7 @@ class SequenceTagger(flair.nn.Model):
                     f"{metric.f_score(class_name):.4f}"
                 )
             detailed_result += cm_result
+            detailed_result += cr
 
             print(detailed_result)
 
