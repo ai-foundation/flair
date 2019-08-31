@@ -332,8 +332,6 @@ class SequenceTagger(flair.nn.Model):
 
             cm = confusion_matrix(true_labels, pred_labels, all_labels)
 
-            # import pdb; pdb.set_trace()
-
             cm_result = "\nConfusion Matrix\n      "
             for i in ordered_labels:
                 cm_result += "%7s" % self.tag_dictionary.get_item_for_index(i).replace('S-', '').replace('_PAUSE', '')

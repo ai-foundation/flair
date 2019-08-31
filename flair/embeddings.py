@@ -140,7 +140,7 @@ class StackedEmbeddings(TokenEmbeddings):
             self.__embedding_length += embedding.embedding_length
 
     def embed(
-        self, sentences: Union[Sentence, List[Sentence]], static_embeddings: bool = True
+            self, sentences: Union[Sentence, List[Sentence]], static_embeddings: bool = True
     ):
         # if only one sentence is passed, convert to list of sentence
         if type(sentences) is Sentence:
@@ -228,9 +228,9 @@ class WordEmbeddings(TokenEmbeddings):
 
         # FT-CRAWL embeddings
         elif (
-            embeddings.lower() == "news"
-            or embeddings.lower() == "en-news"
-            or embeddings.lower() == "en"
+                embeddings.lower() == "news"
+                or embeddings.lower() == "en-news"
+                or embeddings.lower() == "en"
         ):
             cached_path(
                 f"{base_path}en-fasttext-news-300d-1M.vectors.npy", cache_dir=cache_dir
@@ -323,13 +323,13 @@ class WordEmbeddings(TokenEmbeddings):
                 elif word.lower() in self.precomputed_word_embeddings:
                     word_embedding = self.precomputed_word_embeddings[word.lower()]
                 elif (
-                    re.sub(r"\d", "#", word.lower()) in self.precomputed_word_embeddings
+                        re.sub(r"\d", "#", word.lower()) in self.precomputed_word_embeddings
                 ):
                     word_embedding = self.precomputed_word_embeddings[
                         re.sub(r"\d", "#", word.lower())
                     ]
                 elif (
-                    re.sub(r"\d", "0", word.lower()) in self.precomputed_word_embeddings
+                        re.sub(r"\d", "0", word.lower()) in self.precomputed_word_embeddings
                 ):
                     word_embedding = self.precomputed_word_embeddings[
                         re.sub(r"\d", "0", word.lower())
@@ -428,11 +428,11 @@ class OneHotEmbeddings(TokenEmbeddings):
     """One-hot encoded embeddings."""
 
     def __init__(
-        self,
-        corpus=Union[Corpus, List[Sentence]],
-        field: str = "text",
-        embedding_length: int = 300,
-        min_freq: int = 3,
+            self,
+            corpus=Union[Corpus, List[Sentence]],
+            field: str = "text",
+            embedding_length: int = 300,
+            min_freq: int = 3,
     ):
 
         super().__init__()
@@ -540,7 +540,7 @@ class BPEmbSerializable(BPEmb):
 
 
 class MuseCrosslingualEmbeddings(TokenEmbeddings):
-    def __init__(self,):
+    def __init__(self, ):
         self.name: str = f"muse-crosslingual"
         self.static_embeddings = True
         self.__embedding_length: int = 300
@@ -639,11 +639,11 @@ class MuseCrosslingualEmbeddings(TokenEmbeddings):
 
 class BytePairEmbeddings(TokenEmbeddings):
     def __init__(
-        self,
-        language: str,
-        dim: int = 50,
-        syllables: int = 100000,
-        cache_dir=Path(flair.cache_root) / "embeddings",
+            self,
+            language: str,
+            dim: int = 50,
+            syllables: int = 100000,
+            cache_dir=Path(flair.cache_root) / "embeddings",
     ):
         """
         Initializes BP embeddings. Constructor downloads required files if not there.
@@ -701,7 +701,7 @@ class ELMoEmbeddings(TokenEmbeddings):
     """Contextual word embeddings using word-level LM, as proposed in Peters et al., 2018."""
 
     def __init__(
-        self, model: str = "original", options_file: str = None, weight_file: str = None
+            self, model: str = "original", options_file: str = None, weight_file: str = None
     ):
         super().__init__()
 
@@ -938,12 +938,12 @@ class ScalarMix(torch.nn.Module):
 
 
 def _extract_embeddings(
-    hidden_states: List[torch.FloatTensor],
-    layers: List[int],
-    pooling_operation: str,
-    subword_start_idx: int,
-    subword_end_idx: int,
-    use_scalar_mix: bool = False,
+        hidden_states: List[torch.FloatTensor],
+        layers: List[int],
+        pooling_operation: str,
+        subword_start_idx: int,
+        subword_end_idx: int,
+        use_scalar_mix: bool = False,
 ) -> List[torch.FloatTensor]:
     """
     Extracts subword embeddings from specified layers from hidden states.
@@ -990,7 +990,7 @@ def _extract_embeddings(
 
 
 def _build_token_subwords_mapping(
-    sentence: Sentence, tokenizer: PreTrainedTokenizer
+        sentence: Sentence, tokenizer: PreTrainedTokenizer
 ) -> Dict[int, int]:
     """ Builds a dictionary that stores the following information:
     Token index (key) and number of corresponding subwords (value) for a sentence.
@@ -1012,7 +1012,7 @@ def _build_token_subwords_mapping(
 
 
 def _build_token_subwords_mapping_gpt2(
-    sentence: Sentence, tokenizer: PreTrainedTokenizer
+        sentence: Sentence, tokenizer: PreTrainedTokenizer
 ) -> Dict[int, int]:
     """ Builds a dictionary that stores the following information:
     Token index (key) and number of corresponding subwords (value) for a sentence.
@@ -1039,15 +1039,15 @@ def _build_token_subwords_mapping_gpt2(
 
 
 def _get_transformer_sentence_embeddings(
-    sentences: List[Sentence],
-    tokenizer: PreTrainedTokenizer,
-    model: PreTrainedModel,
-    name: str,
-    layers: List[int],
-    pooling_operation: str,
-    use_scalar_mix: bool,
-    bos_token: str = None,
-    eos_token: str = None,
+        sentences: List[Sentence],
+        tokenizer: PreTrainedTokenizer,
+        model: PreTrainedModel,
+        name: str,
+        layers: List[int],
+        pooling_operation: str,
+        use_scalar_mix: bool,
+        bos_token: str = None,
+        eos_token: str = None,
 ) -> List[Sentence]:
     """
     Builds sentence embeddings for Transformer-based architectures.
@@ -1114,10 +1114,10 @@ def _get_transformer_sentence_embeddings(
 
 class TransformerXLEmbeddings(TokenEmbeddings):
     def __init__(
-        self,
-        pretrained_model_name_or_path: str = "transfo-xl-wt103",
-        layers: str = "1,2,3",
-        use_scalar_mix: bool = False,
+            self,
+            pretrained_model_name_or_path: str = "transfo-xl-wt103",
+            layers: str = "1,2,3",
+            use_scalar_mix: bool = False,
     ):
         """Transformer-XL embeddings, as proposed in Dai et al., 2019.
         :param pretrained_model_name_or_path: name or path of Transformer-XL model
@@ -1175,11 +1175,11 @@ class TransformerXLEmbeddings(TokenEmbeddings):
 
 class XLNetEmbeddings(TokenEmbeddings):
     def __init__(
-        self,
-        pretrained_model_name_or_path: str = "xlnet-large-cased",
-        layers: str = "1",
-        pooling_operation: str = "first_last",
-        use_scalar_mix: bool = False,
+            self,
+            pretrained_model_name_or_path: str = "xlnet-large-cased",
+            layers: str = "1",
+            pooling_operation: str = "first_last",
+            use_scalar_mix: bool = False,
     ):
         """XLNet embeddings, as proposed in Yang et al., 2019.
         :param pretrained_model_name_or_path: name or path of XLNet model
@@ -1238,11 +1238,11 @@ class XLNetEmbeddings(TokenEmbeddings):
 
 class XLMEmbeddings(TokenEmbeddings):
     def __init__(
-        self,
-        pretrained_model_name_or_path: str = "xlm-mlm-en-2048",
-        layers: str = "1",
-        pooling_operation: str = "first_last",
-        use_scalar_mix: bool = False,
+            self,
+            pretrained_model_name_or_path: str = "xlm-mlm-en-2048",
+            layers: str = "1",
+            pooling_operation: str = "first_last",
+            use_scalar_mix: bool = False,
     ):
         """
         XLM embeddings, as proposed in Guillaume et al., 2019.
@@ -1302,11 +1302,11 @@ class XLMEmbeddings(TokenEmbeddings):
 
 class OpenAIGPTEmbeddings(TokenEmbeddings):
     def __init__(
-        self,
-        pretrained_model_name_or_path: str = "openai-gpt",
-        layers: str = "1",
-        pooling_operation: str = "first_last",
-        use_scalar_mix: bool = False,
+            self,
+            pretrained_model_name_or_path: str = "openai-gpt",
+            layers: str = "1",
+            pooling_operation: str = "first_last",
+            use_scalar_mix: bool = False,
     ):
         """OpenAI GPT embeddings, as proposed in Radford et al. 2018.
         :param pretrained_model_name_or_path: name or path of OpenAI GPT model
@@ -1365,11 +1365,11 @@ class OpenAIGPTEmbeddings(TokenEmbeddings):
 
 class OpenAIGPT2Embeddings(TokenEmbeddings):
     def __init__(
-        self,
-        pretrained_model_name_or_path: str = "gpt2-medium",
-        layers: str = "1",
-        pooling_operation: str = "first_last",
-        use_scalar_mix: bool = False,
+            self,
+            pretrained_model_name_or_path: str = "gpt2-medium",
+            layers: str = "1",
+            pooling_operation: str = "first_last",
+            use_scalar_mix: bool = False,
     ):
         """OpenAI GPT-2 embeddings, as proposed in Radford et al. 2019.
         :param pretrained_model_name_or_path: name or path of OpenAI GPT-2 model
@@ -1422,11 +1422,11 @@ class OpenAIGPT2Embeddings(TokenEmbeddings):
 
 class RoBERTaEmbeddings(TokenEmbeddings):
     def __init__(
-        self,
-        pretrained_model_name_or_path: str = "roberta-base",
-        layers: str = "-1",
-        pooling_operation: str = "first",
-        use_scalar_mix: bool = False,
+            self,
+            pretrained_model_name_or_path: str = "roberta-base",
+            layers: str = "-1",
+            pooling_operation: str = "first",
+            use_scalar_mix: bool = False,
     ):
         """RoBERTa, as proposed by Liu et al. 2019.
         :param pretrained_model_name_or_path: name or path of RoBERTa model
@@ -1481,10 +1481,10 @@ class CharacterEmbeddings(TokenEmbeddings):
     """Character embeddings of words, as proposed in Lample et al., 2016."""
 
     def __init__(
-        self,
-        path_to_char_dict: str = None,
-        char_embedding_dim: int = 25,
-        hidden_size_char: int = 25,
+            self,
+            path_to_char_dict: str = None,
+            char_embedding_dim: int = 25,
+            hidden_size_char: int = 25,
     ):
         """Uses the default character dictionary if none provided."""
 
@@ -1855,11 +1855,11 @@ class FlairEmbeddings(TokenEmbeddings):
 
 class PooledFlairEmbeddings(TokenEmbeddings):
     def __init__(
-        self,
-        contextual_embeddings: Union[str, FlairEmbeddings],
-        pooling: str = "min",
-        only_capitalized: bool = False,
-        **kwargs,
+            self,
+            contextual_embeddings: Union[str, FlairEmbeddings],
+            pooling: str = "min",
+            only_capitalized: bool = False,
+            **kwargs,
     ):
 
         super().__init__()
@@ -1953,11 +1953,12 @@ class PooledFlairEmbeddings(TokenEmbeddings):
 
 class BertEmbeddings(TokenEmbeddings):
     def __init__(
-        self,
-        bert_model_or_path: str = "bert-base-uncased",
-        layers: str = "-1,-2,-3,-4",
-        pooling_operation: str = "first",
-        use_scalar_mix: bool = False,
+            self,
+            bert_model_or_path: str = "bert-base-uncased",
+            layers: str = "-1,-2,-3,-4",
+            pooling_operation: str = "first",
+            use_scalar_mix: bool = False,
+            fine_tune=False,
     ):
         """
         Bidirectional transformer embeddings of words, as proposed in Devlin et al., 2018.
@@ -1977,19 +1978,20 @@ class BertEmbeddings(TokenEmbeddings):
         self.pooling_operation = pooling_operation
         self.use_scalar_mix = use_scalar_mix
         self.name = str(bert_model_or_path)
-        self.static_embeddings = True
+        self.fine_tune = fine_tune
+        self.static_embeddings = not fine_tune
 
     class BertInputFeatures(object):
         """Private helper class for holding BERT-formatted features"""
 
         def __init__(
-            self,
-            unique_id,
-            tokens,
-            input_ids,
-            input_mask,
-            input_type_ids,
-            token_subtoken_count,
+                self,
+                unique_id,
+                tokens,
+                input_ids,
+                input_mask,
+                input_type_ids,
+                token_subtoken_count,
         ):
             self.unique_id = unique_id
             self.tokens = tokens
@@ -1999,7 +2001,7 @@ class BertEmbeddings(TokenEmbeddings):
             self.token_subtoken_count = token_subtoken_count
 
     def _convert_sentences_to_features(
-        self, sentences, max_sequence_length: int
+            self, sentences, max_sequence_length: int
     ) -> [BertInputFeatures]:
 
         max_sequence_length = max_sequence_length + 2
@@ -2016,7 +2018,7 @@ class BertEmbeddings(TokenEmbeddings):
                 token_subtoken_count[token.idx] = len(subtokens)
 
             if len(bert_tokenization) > max_sequence_length - 2:
-                bert_tokenization = bert_tokenization[0 : (max_sequence_length - 2)]
+                bert_tokenization = bert_tokenization[0: (max_sequence_length - 2)]
 
             tokens = []
             input_type_ids = []
@@ -2080,6 +2082,7 @@ class BertEmbeddings(TokenEmbeddings):
 
         # put encoded batch through BERT model to get all hidden states of all encoder layers
         self.model.to(flair.device)
+        # TODO
         self.model.eval()
         _, _, all_encoder_layers = self.model(
             all_input_ids, token_type_ids=None, attention_mask=all_input_masks
@@ -2103,8 +2106,8 @@ class BertEmbeddings(TokenEmbeddings):
                         else:
                             layer_output = (
                                 all_encoder_layers[int(layer_index)]
-                                .detach()
-                                .cpu()[sentence_index]
+                                    .detach()
+                                    .cpu()[sentence_index]
                             )
                         all_layers.append(layer_output[token_index])
 
@@ -2127,9 +2130,9 @@ class BertEmbeddings(TokenEmbeddings):
                     else:
                         # otherwise, do a mean over all subwords in token
                         embeddings = subtoken_embeddings[
-                            token_idx : token_idx
-                            + feature.token_subtoken_count[token.idx]
-                        ]
+                                     token_idx: token_idx
+                                                + feature.token_subtoken_count[token.idx]
+                                     ]
                         embeddings = [
                             embedding.unsqueeze(0) for embedding in embeddings
                         ]
@@ -2156,11 +2159,11 @@ class CharLMEmbeddings(TokenEmbeddings):
 
     @deprecated(version="0.4", reason="Use 'FlairEmbeddings' instead.")
     def __init__(
-        self,
-        model: str,
-        detach: bool = True,
-        use_cache: bool = False,
-        cache_directory: Path = None,
+            self,
+            model: str,
+            detach: bool = True,
+            use_cache: bool = False,
+            cache_directory: Path = None,
     ):
         """
         initializes contextual string embeddings using a character-level language model.
@@ -2495,10 +2498,10 @@ class DocumentMeanEmbeddings(DocumentEmbeddings):
 
 class DocumentPoolEmbeddings(DocumentEmbeddings):
     def __init__(
-        self,
-        embeddings: List[TokenEmbeddings],
-        fine_tune_mode="linear",
-        pooling: str = "mean",
+            self,
+            embeddings: List[TokenEmbeddings],
+            fine_tune_mode="linear",
+            pooling: str = "mean",
     ):
         """The constructor takes a list of embeddings to be combined.
         :param embeddings: a list of token embeddings
@@ -2582,17 +2585,17 @@ class DocumentPoolEmbeddings(DocumentEmbeddings):
 
 class DocumentRNNEmbeddings(DocumentEmbeddings):
     def __init__(
-        self,
-        embeddings: List[TokenEmbeddings],
-        hidden_size=128,
-        rnn_layers=1,
-        reproject_words: bool = True,
-        reproject_words_dimension: int = None,
-        bidirectional: bool = False,
-        dropout: float = 0.5,
-        word_dropout: float = 0.0,
-        locked_dropout: float = 0.0,
-        rnn_type="GRU",
+            self,
+            embeddings: List[TokenEmbeddings],
+            hidden_size=128,
+            rnn_layers=1,
+            reproject_words: bool = True,
+            reproject_words_dimension: int = None,
+            bidirectional: bool = False,
+            dropout: float = 0.5,
+            word_dropout: float = 0.0,
+            locked_dropout: float = 0.0,
+            rnn_type="GRU",
     ):
         """The constructor takes a list of embeddings to be combined.
         :param embeddings: a list of token embeddings
@@ -2766,16 +2769,16 @@ class DocumentRNNEmbeddings(DocumentEmbeddings):
 )
 class DocumentLSTMEmbeddings(DocumentEmbeddings):
     def __init__(
-        self,
-        embeddings: List[TokenEmbeddings],
-        hidden_size=128,
-        rnn_layers=1,
-        reproject_words: bool = True,
-        reproject_words_dimension: int = None,
-        bidirectional: bool = False,
-        dropout: float = 0.5,
-        word_dropout: float = 0.0,
-        locked_dropout: float = 0.0,
+            self,
+            embeddings: List[TokenEmbeddings],
+            hidden_size=128,
+            rnn_layers=1,
+            reproject_words: bool = True,
+            reproject_words_dimension: int = None,
+            bidirectional: bool = False,
+            dropout: float = 0.5,
+            word_dropout: float = 0.0,
+            locked_dropout: float = 0.0,
     ):
         """The constructor takes a list of embeddings to be combined.
         :param embeddings: a list of token embeddings
