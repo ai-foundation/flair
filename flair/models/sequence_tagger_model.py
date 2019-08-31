@@ -341,7 +341,7 @@ class SequenceTagger(flair.nn.Model):
 
             # classification reprt
 
-            cr = classification_report(true_labels, pred_labels, target_names=ordered_labels, digits=4)
+            cr = classification_report(true_labels, pred_labels, labels=ordered_labels, digits=4)
             cr += '\n'
 
             if out_path is not None:
